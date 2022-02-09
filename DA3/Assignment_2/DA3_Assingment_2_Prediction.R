@@ -420,7 +420,7 @@ rf_model_4
     scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
     theme_bw()
   
-  png('imp_top10.png', width=800, height=300)
+  png('imp_top10.png', width=800, height=600)
   plot(imp_top10)
   dev.off()
 
@@ -451,7 +451,7 @@ rf_model_4
     scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
     theme_bw()
   
-  png('imp_grouped.png', width=400, height=300)
+  png('imp_grouped.png', width=400, height=600)
   plot(imp_grouped)
   dev.off()
   

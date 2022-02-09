@@ -7,7 +7,7 @@ output:
   pdf_document: default
 ---
 
-### Assessment of rbnb aparment prices in Rome
+# Assessment of rbnb aparment prices in Rome
 
 ## Goal and data used
 CityRent, a company specialized in operating rbnb apartments in major European cities, aims to enter the market in Rome. 
@@ -19,7 +19,7 @@ The models were built on a data set containing 16.273 observations and 416 varia
 
 
 ## Market overview
-The rbnb market in Rome is concetrated in district I with 52% of selected listings being there with a median price of EUR 86, which is significantly higher (by c. EUR 15)  than in other districts.
+The rbnb market in Rome is concetrated in district I with 52% of selected listings being located there with a median price of EUR 86, which is significantly higher  than in other districts.
 ```{r,  echo=FALSE, warning=FALSE, message=FALSE, fig.width=4, fig.height = 3, fig.align="center" }
 
 library(kableExtra)
@@ -29,23 +29,21 @@ datasummary( neighbourhood_cleansed*price ~ N + Percent() + Mean + Median + SD, 
     
 
 ```
-
-
 ## Key decision points
-## Observation selection
-I excluded apartments above 400 EUR per night. This cutoff still leaves plenty of extreme values as the 3rd quartile is 100 EUR. I dropped observations where price was missing.
+#### Observation selection
+I excluded apartments above 400 EUR per night. This cutoff still leaves plenty of extreme values as the 3rd quartile is 100 EUR. I dropped observations where price was missing (see histogram of prices below)
 
-### Variable selection
-I selected 40 variables from the original data set (apart from amenities). I excluded variables that were redundant, had very little variation, or variables with irrelevant underlying meaning based on domain knowledge. 
+#### Variable selection
+I selected 40 variables from the original data set (apart from amenities). I excluded variables that were redundant, had very little variation, or variables with irrelevant underlying meaning based on my domain knowledge. 
 
-### Dealing with NAs
-Variables of reviews had many, c.20% missing values. I flagged these missing values and imputed 0 inorder to keep the variable numeric. Variables regarding the host (eg. host since, superhost, ect.) had only a few missing values (<5%) so I decided to impute them with the median. For the few missing integer values , I imputed a replacement value from another variable based on domain knowledge (e.g. missing number of beds equal to number of accommodates, missing number of bedrooms equal to accommodates divided by 2)
+#### Dealing with NAs
+Variables regarding the reviews had many, c.20% missing values. I flagged these missing values and imputed 0 in order to keep the variables numeric. Variables regarding the host (eg. host since, superhost, ect.) had only a few missing values (<5%) so I decided to impute them with the median. For the few missing integer values, I imputed a replacement value from another variable based on domain knowledge (e.g. missing number of beds equal to number of accommodates, missing number of bedrooms equal to accommodates divided by 2)
 
 ### Feature engineering
-I clustered variables into factors, dummies and numeric. For a categorical variable with many values I created a factor, e.g. Neighborhood, for categorical with 2 values I created a dummy with 0 or 1, and for numeric integers I decided individually whether to keep as numeric or to transform to factors (e.g. accommodates)
+I clustered variables into factors, dummies and numeric. For a categorical variable with many values I created a factor, e.g. Neighborhood, for categorical with 2 values I created a dummy with 0 or 1, and for numeric integers I decided individually whether to keep as numeric or to transform to factors (e.g. accommodates). I also created two additional variables, bathroom-bedroom ratio, and host years of experience.
 
 ### Amenities
-I extracted all 379 amenities from the raw data, organized it into a dataframe, ordered it according to frequency, and included it into the model as a dummy variable (e.g. is there a TV)
+I extracted all 379 amenities from the raw data, organized it into a dataframe, ordered it according to frequency, and included it into the model as separate dummy variables (e.g. is there a TV)
 
 ## Key findings and reccomendations
 ### Market insights 
