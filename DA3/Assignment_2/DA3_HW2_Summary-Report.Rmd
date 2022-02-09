@@ -39,14 +39,14 @@ I selected 40 variables from the original data set (apart from amenities). I exc
 #### Dealing with NAs
 Variables regarding the reviews had many, c.20% missing values. I flagged these missing values and imputed 0 in order to keep the variables numeric. Variables regarding the host (eg. host since, superhost, ect.) had only a few missing values (<5%) so I decided to impute them with the median. For the few missing integer values, I imputed a replacement value from another variable based on domain knowledge (e.g. missing number of beds equal to number of accommodates, missing number of bedrooms equal to accommodates divided by 2)
 
-### Feature engineering
+#### Feature engineering
 I clustered variables into factors, dummies and numeric. For a categorical variable with many values I created a factor, e.g. Neighborhood, for categorical with 2 values I created a dummy with 0 or 1, and for numeric integers I decided individually whether to keep as numeric or to transform to factors (e.g. accommodates). I also created two additional variables, bathroom-bedroom ratio, and host years of experience.
 
-### Amenities
+#### Amenities
 I extracted all 379 amenities from the raw data, organized it into a dataframe, ordered it according to frequency, and included it into the model as separate dummy variables (e.g. is there a TV)
 
 ## Key findings and reccomendations
-### Market insights 
+#### Market insights 
 The histogram of price per night suggest that the typical apartment costs EUR 74 per night, and the average is EUR 85. 
 
 ```{r, echo=FALSE, out.width="50%", fig.cap="Histogram of prices per night", fig.align = 'center'}
@@ -54,18 +54,18 @@ library(kableExtra)
 knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_2/plot_price_hist.png")
 
 ```
+#### Key attributes to consider
+The variables that are the most important are reviews regarding the location, the total listings of hosts (suggesting that professionals with more listings have higher prices), number of accommodates, and the ratio of bathrooms to guests (based on variable importance plots from annex). 
 
-The attributes that influence the price the most are xx, xx, and xx, based on the coefficients of an OLS regression.
+We also look in detail at amenities, and the most important ones are the dishwasher, the AC, free parking, and having an elevator. 
 
-### Apparment location and size
+Looking at the importance of feature groups, the features that  describe the quality of the host are the most imporant. Meaning that operating the appartments are jsut as important. The attributes describing the location are jsut second to the ones describing the host! 
+
+
+#### Apparment location and size
 In order to be able to charge a highest possible price, CityRent should aim to purchase an apartment in  the most popular district I, where c 40% of selected listings are to be found. However, district II, XIV, XII is also a potentially good target, as the price per night might be lower but the investment cost to purchase an apartment could be even more lower - this question should be evaluated in the next steps.
 
-, that can accommodate xx persons, preferably in private rooms,  with 1 bathroom per 2 bedrooms, and install the following amenities: 
-
 Such an apartment would have a price of xx per night which is above the average of xx and the median of xx
-
-
-### Operation 
 
 ## Modeling process
 I have grouped the variables into five categories, based on what they represent:

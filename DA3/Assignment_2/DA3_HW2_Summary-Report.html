@@ -173,9 +173,8 @@ pre code {
 </div>
 
 
-<div id="assessment-of-rbnb-aparment-prices-in-rome" class="section level3">
-<h3>Assessment of rbnb aparment prices in Rome</h3>
-</div>
+<div id="assessment-of-rbnb-aparment-prices-in-rome" class="section level1">
+<h1>Assessment of rbnb aparment prices in Rome</h1>
 <div id="goal-and-data-used" class="section level2">
 <h2>Goal and data used</h2>
 <p>CityRent, a company specialized in operating rbnb apartments in major European cities, aims to enter the market in Rome.</p>
@@ -184,7 +183,7 @@ pre code {
 </div>
 <div id="market-overview" class="section level2">
 <h2>Market overview</h2>
-The rbnb market in Rome is concetrated in district I with 52% of selected listings being there with a median price of EUR 86, which is significantly higher (by c. EUR 15) than in other districts.
+The rbnb market in Rome is concetrated in district I with 52% of selected listings being located there with a median price of EUR 86, which is significantly higher than in other districts.
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -561,31 +560,31 @@ price
 </div>
 <div id="key-decision-points" class="section level2">
 <h2>Key decision points</h2>
+<div id="observation-selection" class="section level4">
+<h4>Observation selection</h4>
+<p>I excluded apartments above 400 EUR per night. This cutoff still leaves plenty of extreme values as the 3rd quartile is 100 EUR. I dropped observations where price was missing (see histogram of prices below)</p>
 </div>
-<div id="observation-selection" class="section level2">
-<h2>Observation selection</h2>
-<p>I excluded apartments above 400 EUR per night. This cutoff still leaves plenty of extreme values as the 3rd quartile is 100 EUR. I dropped observations where price was missing.</p>
-<div id="variable-selection" class="section level3">
-<h3>Variable selection</h3>
-<p>I selected 40 variables from the original data set (apart from amenities). I excluded variables that were redundant, had very little variation, or variables with irrelevant underlying meaning based on domain knowledge.</p>
+<div id="variable-selection" class="section level4">
+<h4>Variable selection</h4>
+<p>I selected 40 variables from the original data set (apart from amenities). I excluded variables that were redundant, had very little variation, or variables with irrelevant underlying meaning based on my domain knowledge.</p>
 </div>
-<div id="dealing-with-nas" class="section level3">
-<h3>Dealing with NAs</h3>
-<p>Variables of reviews had many, c.20% missing values. I flagged these missing values and imputed 0 inorder to keep the variable numeric. Variables regarding the host (eg. host since, superhost, ect.) had only a few missing values (&lt;5%) so I decided to impute them with the median. For the few missing integer values , I imputed a replacement value from another variable based on domain knowledge (e.g. missing number of beds equal to number of accommodates, missing number of bedrooms equal to accommodates divided by 2)</p>
+<div id="dealing-with-nas" class="section level4">
+<h4>Dealing with NAs</h4>
+<p>Variables regarding the reviews had many, c.20% missing values. I flagged these missing values and imputed 0 in order to keep the variables numeric. Variables regarding the host (eg. host since, superhost, ect.) had only a few missing values (&lt;5%) so I decided to impute them with the median. For the few missing integer values, I imputed a replacement value from another variable based on domain knowledge (e.g. missing number of beds equal to number of accommodates, missing number of bedrooms equal to accommodates divided by 2)</p>
 </div>
-<div id="feature-engineering" class="section level3">
-<h3>Feature engineering</h3>
-<p>I clustered variables into factors, dummies and numeric. For a categorical variable with many values I created a factor, e.g. Neighborhood, for categorical with 2 values I created a dummy with 0 or 1, and for numeric integers I decided individually whether to keep as numeric or to transform to factors (e.g. accommodates)</p>
+<div id="feature-engineering" class="section level4">
+<h4>Feature engineering</h4>
+<p>I clustered variables into factors, dummies and numeric. For a categorical variable with many values I created a factor, e.g. Neighborhood, for categorical with 2 values I created a dummy with 0 or 1, and for numeric integers I decided individually whether to keep as numeric or to transform to factors (e.g. accommodates). I also created two additional variables, bathroom-bedroom ratio, and host years of experience.</p>
 </div>
-<div id="amenities" class="section level3">
-<h3>Amenities</h3>
-<p>I extracted all 379 amenities from the raw data, organized it into a dataframe, ordered it according to frequency, and included it into the model as a dummy variable (e.g. is there a TV)</p>
+<div id="amenities" class="section level4">
+<h4>Amenities</h4>
+<p>I extracted all 379 amenities from the raw data, organized it into a dataframe, ordered it according to frequency, and included it into the model as separate dummy variables (e.g. is there a TV)</p>
 </div>
 </div>
 <div id="key-findings-and-reccomendations" class="section level2">
 <h2>Key findings and reccomendations</h2>
-<div id="market-insights" class="section level3">
-<h3>Market insights</h3>
+<div id="market-insights" class="section level4">
+<h4>Market insights</h4>
 <p>The histogram of price per night suggest that the typical apartment costs EUR 74 per night, and the average is EUR 85.</p>
 <div class="figure" style="text-align: center">
 <img src="data:image/png;base64,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" alt="Histogram of prices per night" width="50%" />
@@ -593,16 +592,17 @@ price
 Histogram of prices per night
 </p>
 </div>
-<p>The attributes that influence the price the most are xx, xx, and xx, based on the coefficients of an OLS regression.</p>
 </div>
-<div id="apparment-location-and-size" class="section level3">
-<h3>Apparment location and size</h3>
+<div id="key-attributes-to-consider" class="section level4">
+<h4>Key attributes to consider</h4>
+<p>The variables that are the most important are reviews regarding the location, the total listings of hosts (suggesting that professionals with more listings have higher prices), number of accommodates, and the ratio of bathrooms to guests (based on variable importance plots from annex).</p>
+<p>We also look in detail at amenities, and the most important ones are the dishwasher, the AC, free parking, and having an elevator.</p>
+<p>Looking at the importance of feature groups, the features that describe the quality of the host are the most imporant. Meaning that operating the appartments are jsut as important. The attributes describing the location are jsut second to the ones describing the host!</p>
+</div>
+<div id="apparment-location-and-size" class="section level4">
+<h4>Apparment location and size</h4>
 <p>In order to be able to charge a highest possible price, CityRent should aim to purchase an apartment in the most popular district I, where c 40% of selected listings are to be found. However, district II, XIV, XII is also a potentially good target, as the price per night might be lower but the investment cost to purchase an apartment could be even more lower - this question should be evaluated in the next steps.</p>
-<p>, that can accommodate xx persons, preferably in private rooms, with 1 bathroom per 2 bedrooms, and install the following amenities:</p>
 <p>Such an apartment would have a price of xx per night which is above the average of xx and the median of xx</p>
-</div>
-<div id="operation" class="section level3">
-<h3>Operation</h3>
 </div>
 </div>
 <div id="modeling-process" class="section level2">
@@ -899,6 +899,7 @@ Variable importance of top 10 variables
 <p class="caption">
 Variable importance of amenities
 </p>
+</div>
 </div>
 </div>
 </div>
