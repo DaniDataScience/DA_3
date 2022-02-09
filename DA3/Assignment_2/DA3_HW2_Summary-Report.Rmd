@@ -163,7 +163,7 @@ library(kableExtra)
 knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_2/imp_grouped.png")
 ```
 
-```{r, echo=FALSE, out.width="50%", fig.cap="Variable importance of top 10 variables", fig.align = 'center'}
+```{r, echo=FALSE, out.width="100%", fig.cap="Variable importance of top 10 variables", fig.align = 'center'}
 library(kableExtra)
 knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_2/imp_top10.png")
 ```
