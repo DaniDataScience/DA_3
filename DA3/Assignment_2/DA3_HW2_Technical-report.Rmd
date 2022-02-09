@@ -1,0 +1,174 @@
+---
+title: "DA3_HW2_Technical report"
+author: "Gyebnar Daniel"
+date: '2022 02 09 '
+output: html_document
+---
+## Goal of this document
+This document summarizies the workflow and the key decisions made during the workflow.
+
+The document will folllow the logic of my workflow, which had the following structure:
+- Selecting variables
+- Selecting observations
+- Handling missing values
+- Feature engineering: dummy variables
+- Feature engineering: factors
+- Feature engineering: numerics
+- Feature engineering: amenities
+- Creating models
+- OLS calculations
+- LASSO calculations
+- Random Forest calculations
+- Gradient Booting (GBM) calculations
+- Diagnostics
+
+#### Selecting variables
+I have selected the following variables for the analysis:
+
+```{r, echo=FALSE, messages=FALSE,}
+grep( "_", unlist(colnames(read.csv("data_cleaned.csv"))), value = TRUE )
+```
+I have de-selected the following ones:
+```{r, echo=FALSE, messages=FALSE}
+c(                         "name",
+                           "listing_url",
+                           "scrape_id",
+                           "neighborhood_overview",
+                           "picture_url",
+                           "last_scraped",
+                           "host_id",
+                           "description",
+                           "host_about",
+                           "host_url",
+                           "host_name",
+                           "host_thumbnail_url",
+                           "host_url",
+                           "host_response_rate",
+                           "host_acceptance_rate",
+                           "host_verifications",
+                           "host_identity_verified",
+                           "latitude",
+                           "longitude",
+                           "host_listings_count",
+                           "host_picture_url",
+                           "host_neighbourhood",
+                           "neighbourhood",
+                           "neighbourhood_group_cleansed",
+                           "bathrooms",
+                           "availability_30",
+                           "availability_60",
+                           "availability_90",
+                           "availability_365",
+                           "maximum_nights",
+                           "first_review",
+                           "last_review",
+                           "number_of_reviews_ltm",
+                           "number_of_reviews_l30d",
+                           "calendar_last_scraped",
+                           "minimum_minimum_nights",
+                           "maximum_maximum_nights",
+                           "minimum_maximum_nights",
+                           "maximum_minimum_nights",
+                           "minimum_nights_avg_ntm",
+                           "maximum_nights_avg_ntm",
+                           "calendar_updated",
+                           "calculated_host_listings_count_shared_rooms",
+                           "calculated_host_listings_count_private_rooms",
+                           "calculated_host_listings_count_entire_homes",
+                           "license"
+                           )
+```
+
+#### Selecting observations
+I selected observations similar to the business question: Entire rental units, Private room in rental units, Entire condominiums,Private room in condominiums, and Entire lofts.
+
+I have excluded observations where the price was missing, and I have restricted the dataset to prices below 400 EUR per night. 
+
+I ended up with c. 16,000 observations
+
+#### Handling missing values
+For variables with a few missing categorical values, I impted the mode.
+For variables with a few missing numeric values (<5%) so I imputed the median. 
+For the reviews, many (c.20%) values were missing. Here I flagges the missing observations with a new variable, and imputed 0 to the review score
+For the few missing integer values, I imputed a replacement value from another variable based on domain knowledge (e.g. missing number of beds equal to number of accommodates, missing number of bedrooms equal to accommodates divided by 2)```{r, eval=FALSE}
+
+### Feature engineering
+I looked at all variables individually, using the table function to get the possible values, their occurrances, and false/missing values. I also used datasummary on all variables to get the conidtional statistics of price (Mean, Median, SD).
+
+#### Dummy variables
+-Host location: I created a dummy variables, to tell if the host is local or not
+I created dummy variables on whether host has profile picture, is he/she a superhost, and does he/she have availability. I also created dummy variables to flag missing values
+Further improvement could be adding a variable using bad of words technique on the host description variable 
+#### Factors
+For variables with many possible categorical values, I transformed them into categorical variables. Such variables are: neighborhood, property type, room type.
+For the bathrooms, bedrooms and minimum nights, I created integer values with rounding. I also decided to keep these as not numeric variables, but a factors. The distribution of values suggested a grouping of 1into 3-4 categories categories, with majority of the observations being in one or two buckets. Also, using factors allows a more precise regression without having to implement higher order functional forms.
+
+#### Numeric varialbes
+I kept the following variables as numerics: all review scores, number of accommodates, number of reviews, number of listings per host, host years of experience (calculated from year of joining). I also created a new numeric variable by dividing the number of accommodates by the number of bathrooms, to get the bathroom-guest ratio. 
+
+### Amenities
+To extract amenities, I took each word from the variable "amenities" in the original data and put it into a list, calculated the occurances and put them into descending order, transformed each words into a dataframe where each column was an extracted word, added the original amenities variable for as a column and used it to loop through the dataframe to create dummy variables.
+
+### Creating models
+I have grouped the variables into five categories, based on what they represent. I used these groupings later on for the variable importance plots as well:
+
+- property: contains variables that describe the location and the type of real estate, e.g. neighborhood, property type
+- size: contains variables that describe the size of the real estate and its layout, e.g.: beds, bathrooms, number of accommodations, bathroom-guest ratio
+- host: contains variables that describe the details about the host, e.g. is the host a local, how many years of experience the host has
+- booking: contains variables that describe the booking options, e.g. minimum nights, response time
+- reviews: contains variables on the reviews, e.g. overall rating, number of reviews, and the flags of missing values
+- amenities: contains items and extras that are available, e.g. TV, AC, ect. I created 3 variations to this group, to be used as model complexity increases: one with 10 and one with 50 most frequent amenity, and one with all 379 amenities (amenities 2, 3, and 4)
+- interactions: I created interactions, mostly for the number of guests, reviews, and neighborhood, and their combination
+
+I have created the following formulas, with model 1 being the simplest, and model 4 being a reasonably complex model with top 50 amenities, and model 5 with all 379 amenities:
+
+- model 1: simplest model with n_accommodates as the only variable 
+- model 2: price ~ size, property
+- model 3: price ~ size, property, reviews, amenities_2 
+- model 4: price ~ size, property, reviews, host, booking, amenities_3, interactions
+- model 5: price ~ size, property, reviews, host, booking, amenities_4, interactions
+
+## Predictions
+I created a working set for 5 fold cross validation, and a holdout set. The holdout set contained 20% of the observations. Detailed results and tables can be foudn in the Summary report
+
+```{r,  echo=FALSE, warning=FALSE, message=FALSE, fig.width=8, fig.height = 6, fig.align="center" }
+
+library(kableExtra)
+ols_lasso_model_results.csv<- read.csv("exp_ols_lasso_model_results.csv")
+
+kable(ols_lasso_model_results.csv,
+             caption = "OLS and LASSO detailed results") %>%
+  kable_classic(full_width = F) 
+
+```
+
+Advanced models privded the following result onthe holdout set:
+
+```{r,  echo=FALSE, warning=FALSE, message=FALSE, fig.width=8, fig.height = 6, fig.align="center" }
+library(kableExtra)
+result_holdout<- read.csv("exp_result_holdout.csv")
+
+kable(result_holdout,
+             caption = "RMSE on the holdout set") %>%
+  kable_classic(full_width = F) 
+```
+
+#### OLS calculations
+I used 5-fold cross validation OLS. Model 4 proved to be the best regarding RMSE and complexity, while Model 5 was overfit. I used Model 5 for LASSO, and Model 4 for Random Forest and GBM
+
+#### LASSO calculations
+For LASSO I used 5 fold CV, and a tuning vector for lambda from 0 to 1 by the steps of 0.02. 
+The best labda proved to be 0.22, which reduced number of coefficients to 212  from the initial 380.
+
+#### Random Forest calculations
+I used a tuning grid of 6-8-10 selected variables and a terminal node size of 5-10-15. I set the number of trees to 500. The  lowest RMSE was provided by the model with 8 selected variables and 5 as the minimal nod size.
+
+#### Gradient Booting (GBM) calculations
+In GBM I used 250 iterations, with a 0.1 shrinkage factor, and setthe minimum number of traning set samples in a node to 20, and set the complexity of a tree to 5
+
+#### Diagnostics
+The models predicted as expected. The GBM resulted in lowest RMSE, and the LASSO produced suprizingly second best result, with Random Forest being just slightly lower, but almost the same.
+
+I used partial importance plots to determine the prediction in condition to a variable's value. I used this on neighborhood, accommodates, and property type. Graphs are to be found in the annex of the summary report.
+
+I used partial dependence plots to check the importance of groups of variables I used for models, and also to check the top10 variables. I deep-dived into the amenities group, to check the partial importance plot item by item. Results and conclusions areto be found in the summary

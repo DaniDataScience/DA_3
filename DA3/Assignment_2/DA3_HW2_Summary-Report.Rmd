@@ -3,23 +3,44 @@ title: "DA3_HW2_Summary-Report"
 author: "Gyebnar Daniel"
 date: '2022 02 09 '
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 # Assessment of rbnb aparment prices in Rome
 
 ## Goal and data used
-CityRent, a company specialized in operating rbnb apartments in major European cities, aims to enter the market in Rome. 
+CityRent, a company specialized in operating rbnb apartments in major USDopean cities, aims to enter the market in Rome. 
 
-The goal of this paper is to summaries the key findings regarding the pricing mechanism of small and mid sized rbrb apartments in Rome. The paper will give insights on the market, how to best price the apartments given its key attributes, and what the best practices are for operating these apartments.
+The goal of this paper is to summaries the key findings regarding the pricing of small and mid sized rbrb apartments in Rome. The paper will give insights on the market, and present the tool built for predicting prices, given the case CityRent is interested in the potential of a specific apartment.
 
 The study was conducted using data from http://insideairbnb.com/get-the-data.html.
 The models were built on a data set containing 16.273 observations and 416 variables.
 
+## Key decision points
+#### Observation selection
+I excluded apartments above 400 USD per night. This cutoff still leaves extreme values as the 3rd quartile is at 100 USD. I dropped observations where price was missing (see histogram of prices below). FAs for the type of property, I selected apartments, but also similar offerings, e.g. condos and entire houses, to increase the number of observations.
 
-## Market overview
-The rbnb market in Rome is concetrated in district I with 52% of selected listings being located there with a median price of EUR 86, which is significantly higher  than in other districts.
+#### Variable selection
+I selected 40 variables from the original data set (apart from amenities) and I excluded the rest  variables that were redundant, had very little variation, or variables with irrelevant underlying meaning based on my domain knowledge (details in technical summary).
+
+#### Feature engineering
+I clustered variables per type: factors, dummies and numeric. For a categorical variable with many values I created a factor, e.g. Neighborhood, for categorical with 2 values I created a dummy with 0 or 1, and for numeric integers I decided individually whether to keep as numeric or to transform to factors (e.g. accommodates). I also created two additional variables, bathroom-bedroom ratio, and host years of experience.
+
+#### Amenities
+I extracted all 379 amenities from the raw data, organized it into a dataframe, ordered it according to frequency, and included it into the model as separate dummy variables (e.g. is there a TV)
+
+## Key findings and reccomendations
+#### Market insights 
+The histogram of price per night suggest that the typical apartment costs USD 74 per night, and the average is USD 85. This is somewhat higher than for CityRent's current focus, London.
+
+```{r, echo=FALSE, out.width="50%", fig.cap="Histogram of prices per night", fig.align = 'center'}
+library(kableExtra)
+knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_2/plot_price_hist.png")
+
+```
+
+The rbnb market in Rome is concentrated in district I with 52% of selected listings being located there with a median price of USD 86, which is significantly higher  than in other districts. 
 ```{r,  echo=FALSE, warning=FALSE, message=FALSE, fig.width=4, fig.height = 3, fig.align="center" }
 
 library(kableExtra)
@@ -29,43 +50,16 @@ datasummary( neighbourhood_cleansed*price ~ N + Percent() + Mean + Median + SD, 
     
 
 ```
-## Key decision points
-#### Observation selection
-I excluded apartments above 400 EUR per night. This cutoff still leaves plenty of extreme values as the 3rd quartile is 100 EUR. I dropped observations where price was missing (see histogram of prices below)
 
-#### Variable selection
-I selected 40 variables from the original data set (apart from amenities). I excluded variables that were redundant, had very little variation, or variables with irrelevant underlying meaning based on my domain knowledge. 
-
-#### Dealing with NAs
-Variables regarding the reviews had many, c.20% missing values. I flagged these missing values and imputed 0 in order to keep the variables numeric. Variables regarding the host (eg. host since, superhost, ect.) had only a few missing values (<5%) so I decided to impute them with the median. For the few missing integer values, I imputed a replacement value from another variable based on domain knowledge (e.g. missing number of beds equal to number of accommodates, missing number of bedrooms equal to accommodates divided by 2)
-
-#### Feature engineering
-I clustered variables into factors, dummies and numeric. For a categorical variable with many values I created a factor, e.g. Neighborhood, for categorical with 2 values I created a dummy with 0 or 1, and for numeric integers I decided individually whether to keep as numeric or to transform to factors (e.g. accommodates). I also created two additional variables, bathroom-bedroom ratio, and host years of experience.
-
-#### Amenities
-I extracted all 379 amenities from the raw data, organized it into a dataframe, ordered it according to frequency, and included it into the model as separate dummy variables (e.g. is there a TV)
-
-## Key findings and reccomendations
-#### Market insights 
-The histogram of price per night suggest that the typical apartment costs EUR 74 per night, and the average is EUR 85. 
-
-```{r, echo=FALSE, out.width="50%", fig.cap="Histogram of prices per night", fig.align = 'center'}
-library(kableExtra)
-knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_2/plot_price_hist.png")
-
-```
 #### Key attributes to consider
-The variables that are the most important are reviews regarding the location, the total listings of hosts (suggesting that professionals with more listings have higher prices), number of accommodates, and the ratio of bathrooms to guests (based on variable importance plots from annex). 
+The individual variables that are the most important are reviews regarding the location, the total number of listings per hosts (suggesting that professionals with more listings have higher prices), number of accommodates, and the ratio of bathrooms to guests (based on variable importance plots from annex). 
 
-We also look in detail at amenities, and the most important ones are the dishwasher, the AC, free parking, and having an elevator. 
+Looking at the importance plot of feature groups (the ones used for the models as well), the features that  describe the quality of the host are the most important. Meaning that operating the appartments are just as important as the trivial attributes such as the location, which are second to the ones describing the host! 
 
-Looking at the importance of feature groups, the features that  describe the quality of the host are the most imporant. Meaning that operating the appartments are jsut as important. The attributes describing the location are jsut second to the ones describing the host! 
-
+Looking in detail at amenities, and the most important ones are the dishwasher, the AC, free parking, and having an elevator. These predictors were the most important contributors based onteh PDP plot (see annex)
 
 #### Apparment location and size
-In order to be able to charge a highest possible price, CityRent should aim to purchase an apartment in  the most popular district I, where c 40% of selected listings are to be found. However, district II, XIV, XII is also a potentially good target, as the price per night might be lower but the investment cost to purchase an apartment could be even more lower - this question should be evaluated in the next steps.
-
-Such an apartment would have a price of xx per night which is above the average of xx and the median of xx
+In order to be able to charge the highest possible price, CityRent should aim to purchase an apartment in  the most popular district I, where half of listings in scope are to be found. However, district II, XIV, XII is also a potentially good targets, as the price per night might be c10% lower  but the investment cost to purchase an apartment could be even more lower - this question should be evaluated in the next steps. It is also important to equip the apartment with a dishwasher, AC, and free parking is also a big plus - It should be noted that these amenities are slightly different from the ones of key importance CityRent is used to in London!
 
 ## Modeling process
 I have grouped the variables into five categories, based on what they represent:
@@ -90,16 +84,16 @@ From model 1-5 I created OLS models with 5-fold cross validation, and selected m
 
 After training, I evaluated the OLS, the LASSO, the Random Forest, and the GBM model on the holdout set. 
 
-I used the coefficients of the OLS model to explain the key insights on the market in general, and I used the partial dependence plot of the GBM and the variable importance plot from the Random Forest to draw my conclusions.
+I used the partial dependence plot of the GBM and the variable importance plot from the Random Forest to strengthen my conclusions.
 
 ## Interpretation of model results
 
 The initial 5 models with OLS performed as expected: 
-- Model 4 gave the best result, due to having the lowest RMSE and only a slighter higher BIC than the less complex Model 3, which performed with a much higher RMSE (by EUR 0.8)
-- Model 5 is overfit, and was thus used with LASSO. This resulted in a very slightly lower RMSE than the best OLS model, OLS M4 (43.03 EUR vs 43.07 EUR)
+- Model 4 gave the best result, due to having the lowest RMSE and only a slighter higher BIC than the less complex Model 3, which performed with a much higher RMSE (by USD 0.8)
+- Model 5 is overfit, and was thus used with LASSO. This resulted in a very slightly lower RMSE than the best OLS model, OLS M4 (43.03 USD vs 43.07 USD)
 - Regarding the number of coefficients, LASSO excluded 158 variables from the 380
 
-```{r,  echo=FALSE, warning=FALSE, message=FALSE, fig.width=4, fig.height = 3, fig.align="center" }
+```{r,  echo=FALSE, warning=FALSE, message=FALSE, fig.width=8, fig.height = 6, fig.align="center" }
 
 library(kableExtra)
 ols_lasso_model_results.csv<- read.csv("exp_ols_lasso_model_results.csv")
@@ -118,12 +112,12 @@ knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/
 
 ```
 
-My conclusion is that the well constructed Model 4 performed only slightly below the LASSO model. I selected to use Model 4 for another roudn of calculations with Random Forest and GBM
+My conclusion is that the well constructed OLS Model 4 performed only slightly below the LASSO on the overfitted Model 5.
+I selected to use Model 4 for another round of calculations with Random Forest and GBM
 
 Based on the OLS for model 1-5, model 4 is the optimal model, as it has the lowest RMSE on the test set, and its BIC is not significantly higher than for model 3, a less complex model with a higher RMSE - Model 5 clearly overfits the data, given that the train RMSE is lower but the test RMSE is higher compared to model 5.
 
-The LASSO model eliminates xxx variables from the total xxx, and gives a result for the test set that is ...
-```{r,  echo=FALSE, warning=FALSE, message=FALSE, fig.width=4, fig.height = 3, fig.align="center" }
+```{r,  echo=FALSE, warning=FALSE, message=FALSE, fig.width=8, fig.height = 6, fig.align="center" }
 
 library(kableExtra)
 result_holdout<- read.csv("exp_result_holdout.csv")
@@ -133,11 +127,11 @@ kable(result_holdout,
   kable_classic(full_width = F) 
 ```
 
-The RMSE on the holdout sample is slightly below than the RMSE for the coros-validated test set. The lowest RMSE is for Model 4 with GBM method, followed by the LASSO on Model 5, and Random Forest and OLS on Model 4
+The RMSE on the holdout sample is slightly below than the RMSE for the coros-validated test set. The lowest RMSE is for Model 4 with GBM method, followed by the LASSO on Model 5,  Random Forest  OLS on Model 4.
 
 ## Annex
 
-### PDP Plots
+#### PDP Plots
 ```{r, echo=FALSE, out.width="50%", fig.cap="PDP by property type", fig.align = 'center'}
 library(kableExtra)
 knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_2/plot_pdp_property.png")
@@ -156,14 +150,14 @@ knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/
 
 ```
 
-### Variable importance plots
+#### Variable importance plots
 
-```{r, echo=FALSE, out.width="50%", fig.cap="Variable importance by feature groups", fig.align = 'center'}
+```{r, echo=FALSE, messages=FALSE, out.width="50%", fig.cap="Variable importance by feature groups", fig.align = 'center'}
 library(kableExtra)
 knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_2/imp_grouped.png")
 ```
 
-```{r, echo=FALSE, out.width="100%", fig.cap="Variable importance of top 10 variables", fig.align = 'center'}
+```{r, echo=FALSE, out.width="50%",out.height="200%", fig.cap="Variable importance of top 10 variables", fig.align = 'center'}
 library(kableExtra)
 knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_2/imp_top10.png")
 ```

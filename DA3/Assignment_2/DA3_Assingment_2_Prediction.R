@@ -20,8 +20,8 @@ library(stringr)
 library(ranger)
 
 
-data <- read_csv("data_cleaned.csv")
-df_amenities <- read_csv("data_amenities.csv")
+data <- read_csv("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_2/data_cleaned.csv")
+df_amenities <- read_csv("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_2/data_amenities.csv")
  
 ##############################################
 # MODELS with levels of complexity
@@ -251,8 +251,6 @@ df_amenities <- read_csv("data_amenities.csv")
   model_results <- rbind( model_results , lasso_add )
   ols_lasso_model_results <- model_results
   write_csv(ols_lasso_model_results, file="exp_ols_lasso_model_results.csv")
-  
-  
   
 #################################
 # Use of random forest  
