@@ -1,0 +1,106 @@
+---
+title: "DA3_Assingment_2"
+author: "Gyebnar Daniel"
+date: '2022 02 08 '
+output:
+  pdf_document: default
+  html_document: default
+---
+
+### Assessment of rbnb aparment prices in Rome
+
+## Goal and data used
+CityRent, a company specialised in operating rbnb apartments in major European cities, aims to enter the market in Rome. 
+
+The goal of this paper is to summarise the key findings regarding the pricing mechanism of small and mid sized rbrb apartments in Rome. The paper will give insights on the market, how to best price the apparments given its key attributes, and what the best pratices are for operating these aparments.
+
+The study was conducted using data from http://insideairbnb.com/get-the-data.html.
+The models were built on a data set containing 16.273 observations and 416 variables.
+
+## Executive summary
+In order to be able to charge the highest possible price, CityRent should aim to purchase an apartment in xxx district, that can accomodate xx persons, preferably in private rooms, preferably with 1 bathroom per 2 bedrooms, and installthe following amenities: 
+
+Such an apartment would have a price of xx per night which is above the average of xx and the median of xx
+
+
+## Key findings
+### Market insights 
+The histogram of price per night suggest that the typical apartment costs EUR xx per night. 
+
+The attributes that influence the price the most are xx, xx, and xx, based on the coefficients of an OLS regression.
+
+### Apparment location and size
+
+### Operation 
+
+## Key decision points
+### Variable selection
+
+### Dealing with NAs
+
+### Feature engineering
+
+
+## Modeling process
+I have grouped the variables into five categories, based on what they represent:
+
+- property: contains variables that describe the location and the type of real estate, e.g. neighbourhood, property type
+- size: contains variables that describe the size of the real estate and its layout, e.g.: bads, bathrooms, number of accomodations, bathroom-guest ratio
+- host: contains variables that describe the details about the host, e.g. is the host a local, how many years of eperience the host has
+- booking: contains variables that describe the booking options, e.g. minimum nights, reposnonse time
+- reviews: contains variables on the reviews, e.g. overal rating, number of reviews, and the flags of missing values
+- amenities: contains items and extras that are available, e.g. TV, AC, ect. I created 3 variations to this group, to be used as model complexity increases: one with 10 and one with 50 most frequent amenity, and one with all 379 amenities (amenities 2, 3, and 4)
+- interactions: I created interactions, mostly for the number of guests, reviews, and neighborhood, and their combination
+
+I have created the following formulas, with model 1 being the simplest, and model 4 being a reasonably complex model with limited amenities, and model 5 with all 379 amenities:
+
+- model 1: simplest model with n_accommodates as the only variable
+- model 2: price ~ size, property 
+- model 3: price ~ size, property, reviews, amenities_2 
+- model 4: price ~ size, property, reviews, host, booking, amenities_3, interactions
+- model 5: price ~ size, property, reviews, host, booking, amenities_4, interactions
+
+From model 1-5 I created OLS models with 5-fold cross validation, and selected model 4 for Random Forest and GBM. I used the most complex model, model 5, for LASSO. 
+
+After training, I evaluated the OLS, the LASSO, the Random Forest, and the GBM model on the holdout set. 
+
+I used the coefficients of the OLS model to explain the key insights on the market in general, and I used the partial dependence plot of the GBM and the variable importance plot from the Random Forest to draw my conclusions.
+
+## Interpretation of model results
+
+The initial 5 models with OLS performed as expected: Model 4 gave the best result, due to having the lowest RMSE and only a slighter higher BIC than the less complex Model 3, which performed with a much higher RMSE (by EUR 0.8). Model 5 is overfit, and was thus recalculated using LASSO. This resulted in a very slightly lower RMSE than the best OLS model, OLS M4 (43.03 EUR vs 43.07 EUR). Regarding the number of coefficients, LASSO excluded 158 variables from the 380.
+
+
+The following table summarizes the 5 initial models with OLS, and the overfitted Model 5 with LASSO
+```{r,  echo=FALSE, warning=FALSE, message=FALSE, fig.width=4, fig.height = 3, fig.align="center" }
+
+library(kableExtra)
+ols_lasso_model_results.csv<- read.csv("exp_ols_lasso_model_results.csv")
+
+kable(ols_lasso_model_results.csv,
+             caption = "OLS and LASSO detailed results") %>%
+  kable_classic(full_width = F) 
+
+```
+
+The graph below shows how test RMSE decreases until Model 4, while increases for Model 5.
+
+
+![image](https://marinegeo.github.io/assets/img/MarineGEO_logo.png)
+
+Based on the OLS for model 1-5, model 4 is the optimal model, as it has the lowest RMSE on the test set, and its BIC is not significantly higher than for model 3, a less complex model with a higher RMSE - Model 5 clearly overfits the data, given that the train RMSE is lower but the test RMSE is higher compared to model 5.
+
+The LASSO model eliminates xxx variables from the total xxx, and gives a result for the test set that is ...
+
+```{r,  echo=FALSE, warning=FALSE, message=FALSE, fig.width=4, fig.height = 3, fig.align="center" }
+
+library(kableExtra)
+result_holdout<- read.csv("exp_result_holdout.csv")
+
+kable(result_holdout,
+             caption = "RMSE on the holdout set") %>%
+  kable_classic(full_width = F) 
+
+
+```
+The RMSE on the holdout sample is slightly below than the RMSE for the coros-validated test set. The lowest RMSE is for MOdel 4 with GBM method, followed by the LASSO on Model 5, and Random Forest and OLS on Model 4

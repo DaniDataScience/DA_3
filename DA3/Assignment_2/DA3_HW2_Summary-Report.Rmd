@@ -1,0 +1,176 @@
+---
+title: "DA3_HW2_Summary-Report"
+author: "Gyebnar Daniel"
+date: '2022 02 09 '
+output:
+  html_document: default
+  pdf_document: default
+---
+
+### Assessment of rbnb aparment prices in Rome
+
+## Goal and data used
+CityRent, a company specialized in operating rbnb apartments in major European cities, aims to enter the market in Rome. 
+
+The goal of this paper is to summaries the key findings regarding the pricing mechanism of small and mid sized rbrb apartments in Rome. The paper will give insights on the market, how to best price the apartments given its key attributes, and what the best practices are for operating these apartments.
+
+The study was conducted using data from http://insideairbnb.com/get-the-data.html.
+The models were built on a data set containing 16.273 observations and 416 variables.
+
+
+## Market overview
+The rbnb market in Rome is concetrated in district I with 52% of selected listings being there with a median price of EUR 86, which is significantly higher (by c. EUR 15)  than in other districts.
+```{r,  echo=FALSE, warning=FALSE, message=FALSE, fig.width=4, fig.height = 3, fig.align="center" }
+
+library(kableExtra)
+table_descriptives_on_district<- read.csv("table_descriptives_on_district.csv")
+library(modelsummary)
+datasummary( neighbourhood_cleansed*price ~ N + Percent() + Mean + Median + SD, data = table_descriptives_on_district )
+    
+
+```
+
+
+## Key decision points
+## Observation selection
+I excluded apartments above 400 EUR per night. This cutoff still leaves plenty of extreme values as the 3rd quartile is 100 EUR. I dropped observations where price was missing.
+
+### Variable selection
+I selected 40 variables from the original data set (apart from amenities). I excluded variables that were redundant, had very little variation, or variables with irrelevant underlying meaning based on domain knowledge. 
+
+### Dealing with NAs
+Variables of reviews had many, c.20% missing values. I flagged these missing values and imputed 0 inorder to keep the variable numeric. Variables regarding the host (eg. host since, superhost, ect.) had only a few missing values (<5%) so I decided to impute them with the median. For the few missing integer values , I imputed a replacement value from another variable based on domain knowledge (e.g. missing number of beds equal to number of accommodates, missing number of bedrooms equal to accommodates divided by 2)
+
+### Feature engineering
+I clustered variables into factors, dummies and numeric. For a categorical variable with many values I created a factor, e.g. Neighborhood, for categorical with 2 values I created a dummy with 0 or 1, and for numeric integers I decided individually whether to keep as numeric or to transform to factors (e.g. accommodates)
+
+### Amenities
+I extracted all 379 amenities from the raw data, organized it into a dataframe, ordered it according to frequency, and included it into the model as a dummy variable (e.g. is there a TV)
+
+## Key findings and reccomendations
+### Market insights 
+The histogram of price per night suggest that the typical apartment costs EUR 74 per night, and the average is EUR 85. 
+
+```{r, echo=FALSE, out.width="50%", fig.cap="Histogram of prices per night", fig.align = 'center'}
+library(kableExtra)
+knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_2/plot_price_hist.png")
+
+```
+
+The attributes that influence the price the most are xx, xx, and xx, based on the coefficients of an OLS regression.
+
+### Apparment location and size
+In order to be able to charge a highest possible price, CityRent should aim to purchase an apartment in  the most popular district I, where c 40% of selected listings are to be found. However, district II, XIV, XII is also a potentially good target, as the price per night might be lower but the investment cost to purchase an apartment could be even more lower - this question should be evaluated in the next steps.
+
+, that can accommodate xx persons, preferably in private rooms,  with 1 bathroom per 2 bedrooms, and install the following amenities: 
+
+Such an apartment would have a price of xx per night which is above the average of xx and the median of xx
+
+
+### Operation 
+
+## Modeling process
+I have grouped the variables into five categories, based on what they represent:
+
+- property: contains variables that describe the location and the type of real estate, e.g. neighborhood, property type
+- size: contains variables that describe the size of the real estate and its layout, e.g.: beds, bathrooms, number of accommodations, bathroom-guest ratio
+- host: contains variables that describe the details about the host, e.g. is the host a local, how many years of experience the host has
+- booking: contains variables that describe the booking options, e.g. minimum nights, response time
+- reviews: contains variables on the reviews, e.g. overall rating, number of reviews, and the flags of missing values
+- amenities: contains items and extras that are available, e.g. TV, AC, ect. I created 3 variations to this group, to be used as model complexity increases: one with 10 and one with 50 most frequent amenity, and one with all 379 amenities (amenities 2, 3, and 4)
+- interactions: I created interactions, mostly for the number of guests, reviews, and neighborhood, and their combination
+
+I have created the following formulas, with model 1 being the simplest, and model 4 being a reasonably complex model with top 50 amenities, and model 5 with all 379 amenities:
+
+- model 1: simplest model with n_accommodates as the only variable
+- model 2: price ~ size, property 
+- model 3: price ~ size, property, reviews, amenities_2 
+- model 4: price ~ size, property, reviews, host, booking, amenities_3, interactions
+- model 5: price ~ size, property, reviews, host, booking, amenities_4, interactions
+
+From model 1-5 I created OLS models with 5-fold cross validation, and selected model 4 for Random Forest and GBM. I used the most complex model, model 5, for LASSO. 
+
+After training, I evaluated the OLS, the LASSO, the Random Forest, and the GBM model on the holdout set. 
+
+I used the coefficients of the OLS model to explain the key insights on the market in general, and I used the partial dependence plot of the GBM and the variable importance plot from the Random Forest to draw my conclusions.
+
+## Interpretation of model results
+
+The initial 5 models with OLS performed as expected: 
+- Model 4 gave the best result, due to having the lowest RMSE and only a slighter higher BIC than the less complex Model 3, which performed with a much higher RMSE (by EUR 0.8)
+- Model 5 is overfit, and was thus used with LASSO. This resulted in a very slightly lower RMSE than the best OLS model, OLS M4 (43.03 EUR vs 43.07 EUR)
+- Regarding the number of coefficients, LASSO excluded 158 variables from the 380
+
+```{r,  echo=FALSE, warning=FALSE, message=FALSE, fig.width=4, fig.height = 3, fig.align="center" }
+
+library(kableExtra)
+ols_lasso_model_results.csv<- read.csv("exp_ols_lasso_model_results.csv")
+
+kable(ols_lasso_model_results.csv,
+             caption = "OLS and LASSO detailed results") %>%
+  kable_classic(full_width = F) 
+
+```
+
+The graph below shows how test RMSE decreases until Model 4, while increases for Model 5
+
+```{r, echo=FALSE, out.width="50%", fig.cap="Test & Train RMSE by coefficients for OLS models", fig.align = 'center'}
+library(kableExtra)
+knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_2/plot_trainings_vs_test_rmse.png")
+
+```
+
+My conclusion is that the well constructed Model 4 performed only slightly below the LASSO model. I selected to use Model 4 for another roudn of calculations with Random Forest and GBM
+
+Based on the OLS for model 1-5, model 4 is the optimal model, as it has the lowest RMSE on the test set, and its BIC is not significantly higher than for model 3, a less complex model with a higher RMSE - Model 5 clearly overfits the data, given that the train RMSE is lower but the test RMSE is higher compared to model 5.
+
+The LASSO model eliminates xxx variables from the total xxx, and gives a result for the test set that is ...
+```{r,  echo=FALSE, warning=FALSE, message=FALSE, fig.width=4, fig.height = 3, fig.align="center" }
+
+library(kableExtra)
+result_holdout<- read.csv("exp_result_holdout.csv")
+
+kable(result_holdout,
+             caption = "RMSE on the holdout set") %>%
+  kable_classic(full_width = F) 
+```
+
+The RMSE on the holdout sample is slightly below than the RMSE for the coros-validated test set. The lowest RMSE is for Model 4 with GBM method, followed by the LASSO on Model 5, and Random Forest and OLS on Model 4
+
+## Annex
+
+### PDP Plots
+```{r, echo=FALSE, out.width="50%", fig.cap="PDP by property type", fig.align = 'center'}
+library(kableExtra)
+knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_2/plot_pdp_property.png")
+
+```
+
+```{r, echo=FALSE, out.width="50%", fig.cap="PDP by number of accomodates", fig.align = 'center'}
+library(kableExtra)
+knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_2/plot_pdp_n_accommodates.png")
+
+```
+
+```{r, echo=FALSE, out.width="50%", fig.cap="PDP by neighborhood", fig.align = 'center'}
+library(kableExtra)
+knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_2/plot_pdp_f_neighbourhood_cleansed.png")
+
+```
+
+### Variable importance plots
+
+```{r, echo=FALSE, out.width="50%", fig.cap="Variable importance by feature groups", fig.align = 'center'}
+library(kableExtra)
+knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_2/imp_grouped.png")
+```
+
+```{r, echo=FALSE, out.width="50%", fig.cap="Variable importance of top 10 variables", fig.align = 'center'}
+library(kableExtra)
+knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_2/imp_top10.png")
+```
+
+```{r, echo=FALSE, out.width="50%", fig.cap="Variable importance of amenities", fig.align = 'center'}
+library(kableExtra)
+knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_2/imp_amen.png")
+```
