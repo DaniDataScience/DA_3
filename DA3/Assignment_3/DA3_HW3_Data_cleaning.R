@@ -120,14 +120,32 @@ data <- data %>%
          d1_sales_mil_log_mod_sq = d1_sales_mil_log_mod^2
   )
 
+# add previous growth as a variable
+data <- data %>% 
+  mutate(
+    cagr_sales_11_12 = ((sales_mil / lag(sales_mil,1))^(1/1)-1)*100,
+    cagr_sales_10_11 = ((lag(sales_mil,1) / lag(sales_mil,2))^(1/1)-1)*100
+  )
 
-# CAGR sales change in the last 2 years
+data <- data %>%
+  mutate(
+    cagr_sales_10_11 = ifelse(is.na(cagr_sales_10_11), 0, cagr_sales_10_11),
+    cagr_sales_11_12 = ifelse(is.na(cagr_sales_11_12), 0, cagr_sales_11_12))
+
+
+sum(is.na(data$cagr_sales_11_12))
+sum(is.na(data$cagr_sales_10_11))
+
+view(data %>% select(c(comp_id, year, sales_mil, cagr_sales_10_11, cagr_sales_11_12)))
+
+# CAGR sales change in the last 2 years (2012-2014)
 data <- data %>%
   group_by(comp_id) %>%
   mutate(cagr_sales = ((lead(sales_mil,2) / sales_mil)^(1/2)-1)*100)
 
 #view(data %>% select(c(comp_id, year, sales_mil, sales_mil_log, d1_sales_mil_log, cagr_sales)))
 
+# select observations
 data <- data %>%
   filter(year == 2012,
          cagr_sales != is.na(cagr_sales),
@@ -177,6 +195,7 @@ data <- data %>%
          foreign_management = as.numeric(foreign >= 0.5),
          gender_m = factor(gender, levels = c("female", "male", "mix")),
          m_region_loc = factor(region_m, levels = c("Central", "East", "West")))
+
 
 
 ###########################################################
@@ -323,4 +342,3 @@ sort(to_filter[to_filter > 0])
 # datasummary_skim(data, type="numeric")
 
 write_csv(data, "data/bisnode_firms_clean.csv")
-
