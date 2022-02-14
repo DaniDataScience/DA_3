@@ -38,6 +38,7 @@ library(stats)
 ####################################
 # LOAD DATA AND CHECK
 
+
 # load data
 data_raw <- read_csv("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/data/cs_bisnode_panel.csv")
 data <- data_raw
@@ -46,19 +47,18 @@ glimpse(data)
 skim(data) # many missing in COGS, finished_prod, net_dom_sales, net_exp_sales, wages, exit_year
 
 
-####################################
-# CLEANING
-
 to_filter <- sapply(data, function(x) sum(is.na(x)))
 sort(to_filter[to_filter > 0])
 
-# drop variables with too many NAs and filter years between 2010-2015 
+# drop variables with too many NAs more than 200k and filter years between 2012-2014 
 # with full year balance sheet indicating they are not new firms
 data <- data %>%
-  select(-c(COGS, finished_prod, net_dom_sales, net_exp_sales, wages, exit_year, exit_date, D)) %>%
+  select(-c(COGS, finished_prod, net_dom_sales, net_exp_sales, wages, D, exit_year, exit_date)) %>%
   filter(year >= 2010,
          year <= 2015,
          balsheet_length >= 360)
+
+# Label Engineering -------------------------------------------------------
 
 # generate status_alive to check the firm is still alive
 data  <- data %>%
@@ -67,6 +67,7 @@ data  <- data %>%
 
 
 # Create log sales and sales in million
+# We have negative sales values
 summary(data$sales)
 
 data <- data %>%
@@ -74,6 +75,8 @@ data <- data %>%
          ln_sales = ifelse(sales > 0, log(sales), 0),
          sales_mil=sales/1000000,
          sales_mil_log = ifelse(sales > 0, log(sales_mil), 0))
+
+data$sales_mil_log_sq <- (data$sales_mil_log)^2 
 
 
 # Filter out non-alive firms
@@ -83,27 +86,21 @@ data <- data %>%
   filter(!(sales_mil > 10)) %>%
   filter(!(sales_mil < 0.001))
 
+# save backup
+df <- data
+data <- df
 
-####################################
-# DEFINING FAST GROWTH
+############################################
 
-# I aim to define using 2 years, as one year can be a special event
+# I will use the 2012-2014 approach, because a one-year fast growth for a young firm can happen due to extraordinary event in that year
 
-# Change in sales (2012-2014)
+
+# Change in sales
 data <- data %>%
   group_by(comp_id) %>%
-  mutate(d_12_14_sales_mil = sales_mil - lag(sales_mil, 2) ) %>%
-  ungroup()
-# Change in sales (2013-2014)
-data <- data %>%
-  group_by(comp_id) %>%
-  mutate(d_13_14_sales_mil = sales_mil - lag(sales_mil, 1) ) %>%
+  mutate(d1_sales_mil_log = sales_mil_log - lag(sales_mil_log, 2) ) %>%
   ungroup()
 
-# there are more NAs for 2012-2014, but there will be still enough data point
-sum(is.na(data$d_13_14_sales_mil))
-sum(is.na(data$d_12_14_sales_mil))
-data <- data %>% select(-c("d_13_14_sales_mil"))
 
 # replace w 0 for new firms + add dummy to capture it
 data <- data %>%
@@ -111,43 +108,51 @@ data <- data %>%
            ifelse(. < 0, 0, .),
          new = as.numeric(age <= 1) %>% #  (age could be 0,1 )
            ifelse(balsheet_notfullyear == 1, 1, .),
-         d_12_14_sales_mil = ifelse(new == 1, 0, d_12_14_sales_mil),
-         new = ifelse(is.na(d_12_14_sales_mil), 1, new),
-         d_12_14_sales_mil = ifelse(is.na(d_12_14_sales_mil), 0, d_12_14_sales_mil))
+         d1_sales_mil_log = ifelse(new == 1, 0, d1_sales_mil_log),
+         new = ifelse(is.na(d1_sales_mil_log), 1, new),
+         d1_sales_mil_log = ifelse(is.na(d1_sales_mil_log), 0, d1_sales_mil_log))
+
+data <- data %>%
+  mutate(flag_low_d1_sales_mil_log = ifelse(d1_sales_mil_log < -1.5, 1, 0),
+         flag_high_d1_sales_mil_log = ifelse(d1_sales_mil_log > 1.5, 1, 0),
+         d1_sales_mil_log_mod = ifelse(d1_sales_mil_log < -1.5, -1.5,
+                                       ifelse(d1_sales_mil_log > 1.5, 1.5, d1_sales_mil_log)),
+         d1_sales_mil_log_mod_sq = d1_sales_mil_log_mod^2
+  )
 
 
-# CAGR sales change 2012-2014
+# CAGR sales change in the last 2 years
 data <- data %>%
   group_by(comp_id) %>%
-  mutate(cagr_sales = ((sales_mil / lag(sales_mil, 2))^0.5-1)*100)
-  
+  mutate(cagr_sales = ((lead(sales_mil,2) / sales_mil)^(1/2)-1)*100)
+
+#view(data %>% select(c(comp_id, year, sales_mil, sales_mil_log, d1_sales_mil_log, cagr_sales)))
+
 data <- data %>%
-  filter(year == 2014,
+  filter(year == 2012,
          cagr_sales != is.na(cagr_sales),
-         cagr_sales != is.na(d_12_14_sales_mil),
          cagr_sales <= 3000)
 
 ggplot(data=data, aes(x=cagr_sales)) +
-  geom_histogram(color = "white", fill = "blue", boundary=0) +
-  scale_x_continuous(limits=c(0,250)) +
-  labs(x = "CAGR growth",y = "Count") +
+  geom_histogram(aes(y = (..count..)/sum(..count..)), binwidth = 10, boundary=0,
+                 color = "black", fill = "deepskyblue4") +
+  coord_cartesian(xlim = c(-100, 200)) +
+  labs(x = "CAGR growth",y = "Percent")+
   theme_bw() 
 
-# Create fast growth dummy 
-# Fast growth: CAGR larger than 100
+# Create fast growth dummy as cagr larger than 50%
 data <- data %>%
   group_by(comp_id) %>%
-  mutate(fast_growth = (cagr_sales > 20) %>%
+  mutate(fast_growth = (cagr_sales > 50) %>%
            as.numeric(.)) %>%
   ungroup()
-
-table(data$fast_growth)
 
 data <- data %>%
   mutate(age = (year - founded_year))
 
-to_filter <- sapply(data, function(x) sum(is.na(x)))
-sort(to_filter[to_filter > 0])
+# save backup
+df <- data
+data <- df
 
 
 ###########################################################
@@ -163,13 +168,20 @@ data <- data %>%
            ifelse(. == 31, 30, .) %>%
            ifelse(is.na(.), 99, .)
   )
+
 table(data$ind2_cat)
 
+# Firm characteristics
 data <- data %>%
   mutate(age2 = age^2,
          foreign_management = as.numeric(foreign >= 0.5),
          gender_m = factor(gender, levels = c("female", "male", "mix")),
          m_region_loc = factor(region_m, levels = c("Central", "East", "West")))
+
+
+###########################################################
+# look at more financial variables, create ratios
+###########################################################
 
 # assets can't be negative. Change them to 0 and add a flag.
 data <-data  %>%
@@ -186,6 +198,7 @@ data <- data %>%
   mutate(total_assets_bs = intang_assets + curr_assets + fixed_assets)
 summary(data$total_assets_bs)
 
+
 pl_names <- c("extra_exp","extra_inc",  "extra_profit_loss", "inc_bef_tax" ,"inventories",
               "material_exp", "profit_loss_year", "personnel_exp")
 bs_names <- c("intang_assets", "curr_liab", "fixed_assets", "liq_assets", "curr_assets",
@@ -198,6 +211,7 @@ data <- data %>%
 # divide all bs_names elements by total_assets_bs and create new column for it
 data <- data %>%
   mutate_at(vars(bs_names), funs("bs"=ifelse(total_assets_bs == 0, 0, ./total_assets_bs)))
+
 
 ########################################################################
 # creating flags, and winsorizing tails
@@ -214,6 +228,7 @@ data <- data %>%
   mutate_at(vars(zero), funs("flag_error"= as.numeric(.< 0))) %>%
   mutate_at(vars(zero), funs(ifelse(.< 0, 0, .)))
 
+
 # for vars that could be any, but are mostly between -1 and 1
 any <-  c("extra_profit_loss_pl", "inc_bef_tax_pl", "profit_loss_year_pl", "share_eq_bs")
 
@@ -225,6 +240,7 @@ data <- data %>%
   mutate_at(vars(any), funs("flag_zero"= as.numeric(.== 0))) %>%
   mutate_at(vars(any), funs("quad"= .^2))
 
+
 # dropping flags with no variation
 variances<- data %>%
   select(contains("flag")) %>%
@@ -232,6 +248,14 @@ variances<- data %>%
 
 data <- data %>%
   select(-one_of(names(variances)[variances]))
+
+# Compare the original and winsored data
+ggplot(data = data, aes(x=d1_sales_mil_log, y=d1_sales_mil_log_mod)) +
+  geom_point(size=0.1,  shape=20, stroke=2, fill='blue', color='blue') +
+  labs(x = "Growth rate (Diff of ln sales) (original)",y = "Growth rate (Diff of ln sales) (winsorized)") +
+  theme_bw() +
+  scale_x_continuous(limits = c(-5,5), breaks = seq(-5,5, 1)) +
+  scale_y_continuous(limits = c(-3,3), breaks = seq(-3,3, 1))
 
 ########################################################################
 # additional
@@ -285,21 +309,18 @@ data <- data %>%
   mutate_at(vars(colnames(data)[sapply(data, is.factor)]), funs(fct_drop))
 
 ggplot(data = data, aes(x=inc_bef_tax_pl, y=as.numeric(fast_growth))) +
-  geom_point(size=2,  shape=20, stroke=2, fill="blue", color="blue") +
+  geom_point(size=0.01,  shape=20, stroke=2, fill="blue", color="blue", alpha=0.01) +
   geom_smooth(method="loess", se=F, colour="black", size=1.5, span=0.9) +
   labs(x = "Income before taxes",y = "Fast Growth distribution") +
   theme_bw() +
   scale_x_continuous(limits = c(-1.5,1.5), breaks = seq(-1.5,1.5, 0.5))
 
-# check variables
-datasummary_skim(data, type="numeric")
-
-
 # check NAs
 to_filter <- sapply(data, function(x) sum(is.na(x)))
 sort(to_filter[to_filter > 0])
-# drop birth-year
-data <- data %>% select(-birth_year)
 
+# check variables
+# datasummary_skim(data, type="numeric")
 
 write_csv(data, "data/bisnode_firms_clean.csv")
+
