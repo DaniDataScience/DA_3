@@ -120,6 +120,19 @@ data <- data %>%
          d1_sales_mil_log_mod_sq = d1_sales_mil_log_mod^2
   )
 
+# plotting hist
+plot_sales_mil_log <- ggplot(data=data, aes(x=sales_mil_log)) +
+  geom_histogram(aes(y = (..count..)/sum(..count..)),bins=50, boundary=0,
+                 color = "black", fill = "deepskyblue4") +
+  coord_cartesian(xlim = c(-8, 8)) +
+  labs(x = "CAGR growth",y = "Percent")+
+  theme_bw() 
+
+png('plot_sales_mil_log.png', width=400, height=300)
+plot(plot_sales_mil_log)
+dev.off()
+
+
 # add previous growth as a variable
 data <- data %>% 
   mutate(
@@ -151,12 +164,16 @@ data <- data %>%
          cagr_sales != is.na(cagr_sales),
          cagr_sales <= 3000)
 
-ggplot(data=data, aes(x=cagr_sales)) +
+plot_cagr_hist <- ggplot(data=data, aes(x=cagr_sales)) +
   geom_histogram(aes(y = (..count..)/sum(..count..)), binwidth = 10, boundary=0,
                  color = "black", fill = "deepskyblue4") +
   coord_cartesian(xlim = c(-100, 200)) +
   labs(x = "CAGR growth",y = "Percent")+
   theme_bw() 
+
+png('plot_cagr_hist.png', width=400, height=300)
+plot(plot_cagr_hist)
+dev.off()
 
 # Create fast growth dummy as cagr larger than 50%
 data <- data %>%
@@ -269,12 +286,16 @@ data <- data %>%
   select(-one_of(names(variances)[variances]))
 
 # Compare the original and winsored data
-ggplot(data = data, aes(x=d1_sales_mil_log, y=d1_sales_mil_log_mod)) +
+winsorisation <- ggplot(data = data, aes(x=d1_sales_mil_log, y=d1_sales_mil_log_mod)) +
   geom_point(size=0.1,  shape=20, stroke=2, fill='blue', color='blue') +
   labs(x = "Growth rate (Diff of ln sales) (original)",y = "Growth rate (Diff of ln sales) (winsorized)") +
   theme_bw() +
   scale_x_continuous(limits = c(-5,5), breaks = seq(-5,5, 1)) +
   scale_y_continuous(limits = c(-3,3), breaks = seq(-3,3, 1))
+
+png('winsorisation.png', width=400, height=300)
+plot(winsorisation)
+dev.off()
 
 ########################################################################
 # additional
@@ -333,6 +354,7 @@ ggplot(data = data, aes(x=inc_bef_tax_pl, y=as.numeric(fast_growth))) +
   labs(x = "Income before taxes",y = "Fast Growth distribution") +
   theme_bw() +
   scale_x_continuous(limits = c(-1.5,1.5), breaks = seq(-1.5,1.5, 0.5))
+
 
 # check NAs
 to_filter <- sapply(data, function(x) sum(is.na(x)))
