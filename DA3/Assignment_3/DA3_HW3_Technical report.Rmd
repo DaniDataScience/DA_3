@@ -1,0 +1,188 @@
+---
+title: "DA3 HW3 Technical report"
+author: "Gyebnar Daniel"
+date: '2022 02 15 '
+output:
+  html_document: default
+  pdf_document: default
+---
+
+# Assessment of fast growing firms
+
+## Abstract
+FastInvest, a newly established Private Equity aims to invest in companies that have a potential of growing rapidly in the next years. The goal of this project was to identify firms with such potential using the tools of prediction and classification by using logit, lasso, and random forest models. 
+
+## Goal and data used
+The goal of this technical report is to detail decisions made during the analysis.
+
+The data was used for this analysis was collected, maintained, and cleaned by Bisnode, a major
+European business information company, containing financial, management and other data on all companies in the EU. The analysis focused on the range of 2010-2015
+
+## Business case 
+FastInvest aims to invest EUR 100,000 in each firm identified as fast growing. 
+Based on their investment policy they purchase firms that are expected to grow by at lest 50% annually, and hold them firms for 5 years.
+
+#### Definition of fast growing firms
+Based on the business requirements, the definition of fast growing firms is based on the growth rate of 2 years, from 2012 to 2014, reaching at least a 50% growth in revenues annually. The two years span aims to ensure that the growth is not due to an extraordinary event, and that the fast growth can be expected to remain in the holding period of 5 years. 
+
+In the cleaned data set used for predicting, this resulted in the following distribution:
+```{r, echo=FALSE, out.width="50%", fig.cap="Histogram of CAGR", fig.align = 'center'}
+library(kableExtra)
+data <- read_csv("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/data/bisnode_firms_clean.csv")
+train_indices <- as.integer(createDataPartition(data$fast_growth, p = 0.8, list = FALSE))
+data_train <- data[train_indices, ]
+data_holdout <- data[-train_indices, ]
+
+data %>% 
+  group_by(fast_growth_f) %>% 
+  summarise("Number of companies" = n(), "Percentage" = paste0(round(n()/(1598+12541)*100),'%')) %>% 
+  kbl() %>% 
+  kable_classic(full_width = F, html_font = "Cambria")
+
+
+```
+
+
+#### Definition of loss function
+Consequentially, the loss function needs to reflect this investment rationale:
+- An investment of EUR 100,000 at 50% annual growth will lead to EUR 780,000 USD, a profit of USD 700,000. This is a conservative estimation, as the average of growth rates for companies labelled as "fast growing" is 150% based on the cleaned Bisnode dataset
+- This leads to a False Negative decision resulting in EUR 700.000 USD loss (cost of profit lost from not investing in the company)
+- While a False Positive decision results in the loss of the EUR 100,000 invested (assuming that the investment of the PE would be stuck)
+
+Based on the business rationale, I set the cost function as FN/FP = 7
+
+## Data cleaning process
+The data originally had c.290,000 observations on c.46,000 firms from 2005 to 2016, with 48 variables describing information on balance sheet, assets, liabilities, profit and loss, management. In the end of data cleaning I ended up with 14,139 observations (each a firm from 2012) and 116 variables. The process of feature engineering and observation selection is described in following subchapters.
+
+#### Selecting observations
+I filtered the data for the 2010-2015 period, and included firms with a revenue between EUR 1,000 - 1,000,000 to capture SMEs. I excluded observations of firms that are no longer active, and also restricted the firms to 2012 (base year of prediction), and below CAGR of 3000 (to exclude potential mistakes and unprecedented events of growth that are not likely to be repeated in case of a purchase)
+
+#### Adding new variables
+I added the CAGR of 2012-2014, and the target variable to predict: the fast-growth binary variable, based on the 50% CAGR threshold identified previously.  
+
+I also added explanatory variables, such as log sales, previous CAGRs (2010-'11 and 2011-'12), foreign management variable and CEO age. I included ratios for key financials by dividing all balance sheet elements with totalassets, and similarly with profit and loss statement elements. 
+
+### Droping variables, iImputation  corrections
+I dropped variables that had too many missing values (above 15,000 in raw dataset). I used winsorization to correct values for certain items that are not possible based on domain knowledge, and flagged these events sheet (e.g. negative assets, sales), and I created category variables and created factors. In the end we dropped observations with too many missing values in key variables and we finished with 116 variables and 11 910 observations.
+
+In the end, I had the following distributions:
+```{r, echo=FALSE, out.width="50%", fig.cap="Histogram of CAGR", fig.align = 'center'}
+library(kableExtra)
+knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/plot_cagr_hist.png")
+```
+
+```{r, echo=FALSE, out.width="50%", fig.cap="Histogram of CAGR", fig.align = 'center'}
+library(kableExtra)
+knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/plot_cagr_hist.png")
+```
+
+```{r, echo=FALSE, out.width="50%", fig.cap="Winsorisation log sales difference", fig.align = 'center'}
+library(kableExtra)
+knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/winsorisation.png")
+```
+## Prdiction process
+#### Creating models
+I grouped variables according to their meaning, and created formulas for the models based on that:
+- Raw variables are key variables such as main profit and loss and balance sheet elements
+- Engine variables 1 are other profit and loss and balance sheet elements
+- Engine variables 2 are quadratic transformation of  key variables (profit and loss, income before tax, extra profit and loss)
+- Engine variables 3 are flags of engine 2 variables, where modification was needed (winsorisation, imptation)
+- D1 are variables measuring change of sales
+- HR are data about management such as age and gender of CEO or average labor number
+- Firm are : properties of the firms like age of the company, region, etc.
+- Interactions 1 and 2 are interactions of variables
+
+From these groups, I created the following models:
+```{r, echo=F, message=F, warning=F, fig.cap="Models used"}
+models <- data.frame(row.names = c("X1 model", "X2 model", "X3 model", "X4 model", "X5 model", "LASSO", "Random Forest"))
+models$Variables[1] <- "Log sales + Log sales^2 + Change in Sales + Profit and loss + Industry"
+models$Variables[2] <- "X1 + Fixed assets + Equity + Current liabilities (and flags) + Age + Foreign management"
+models$Variables[3] <- "Log sales + Log sales^2 + Firm + Engine variables 1 + D1"
+models$Variables[4] <- "X3 + Engine variables 2 + Engine variables 3 + HR"
+models$Variables[5] <- "X4 + Interactions 1 and 2"
+models$Variables[6] <- "X5"
+models$Variables[7] <- "sales_mil + d1_sales_mil_log + rawvars + hr + firm + qualityvars"
+models %>% 
+  kbl() %>% 
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+I created a holdout set from the 20% of the data. The total set, the holdout set and the train set as well had a c.11% ratio of fast growing firms. The train data was used for a 5-fold cross validation.
+
+## Prediction 
+The best model was X3 logit model based on giving the largest AUC result. 
+
+#### Logit models
+I evaluated the 5 logit models based on the cross-validated RMSE and AUC. Model X4 provided the best results in term of AUC, but it is much more complex than X3.  
+
+```{r, echo=F, message=F, warning=F, fig.cap="Summary of logit results"}
+
+library(kableExtra)
+logit_summary1<- read.csv("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/exp_logit_summary1.csv")
+
+logit_summary1 %>% 
+  slice(1:5) %>% 
+  kbl() %>% 
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+#### LASSO model
+The LASSO model was based on the most complex X5 formula with all variable. Lasso shrank the number of coefficients from 85 to 70, and resulted in a better RMSE, but inferior AUC compared to X3
+```{r, echo=F, message=F, warning=F, fig.cap="Summary of logit results"}
+logit_summary1 %>% 
+  slice(3,6) %>% 
+  kbl() %>% 
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+#### Random Forest
+Random forest was based on using raw variables mostly with additional ones. This is due to the random forst +figuring out" functional forms by splits and conditional means, so adding higher orders and modified functional forms is not neccessary.
+
+The RF was run with growing 500 trees, with 10 and 15 as the minimum number of observations  and 5, 6 or 7 variables in each split. The Random Forest performed slightly worse than the X3 model in terms os AUS? but gave a better RMSE
+```{r}
+library(kableExtra)
+logit_summary1<- read.csv("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/exp_rf_summary.csv")
+rf_summary %>% 
+  slice(c(3,7)) %>% 
+  kbl() %>% 
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+#### Model results
+I used the X3 Logit model to calculate predictions on the holdout set. The calibration curve show our model performance. We can see that for values below 0.4, the model did a pretty good job, however, above 0.4 the model was too conservative, it predicted lower values (e.g. 0.5 instead of 0.7).
+
+```{r, echo=FALSE, out.width="50%", fig.cap="Calibration plot for X3", fig.align = 'center'}
+library(kableExtra)
+knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/plot_calibration.png")
+
+```
+
+Below I included the ROC plot and the area under the curve for X3.  
+```{r, echo=FALSE, out.width="50%", fig.cap="ROC plot for X3", fig.align = 'center'}
+library(kableExtra)
+knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/plot_ROC.png")
+
+```
+
+## Classification
+#### Setting treshold
+In order to classify the predictions into categories of fast growth / not fast growth, I had to select a threshold. I used the loss function explained under the chapter "Business Case", with cost=7. Based on the formula the optimal classification threshold would be 1/(1+7) = 0.125, but also used an algorith to calculate optimal thresholds. The results can be found below:
+
+```{r, echo=FALSE, out.width="50%", fig.cap="CV thresholds and Expected loss", fig.align = 'center'}
+library(kableExtra)
+knitr::include_graphics("")
+
+```
+#### Model choice and evaluation
+Based table expected loss in the table above, the random forest is the best model to use due to lowest expected losses, followed by .... Interestingly, ordering the models based on AUC would yield a different list.
+
+On the holdout set for my chosen model, the Random Forest, the expected loss is 0.39. This is even smaller than what we got for the train data. Below is the confusion table for the model, showing the choices made by the model, in comparison to the actual values. Based on this the model performance is the following:
+
+Accuracy is 82.6%
+Sensitivity is 30.5%
+Specificity is 92.4%
+Correctly predicted positive 43.1% (115/(115+152))
+
+#### Summary
+The task was to select fast growing firms, defined as firms growing at least 50% annually. I buil Logit, LASSO, and Random Forest models. I defined the loss function with False Negatives being 7 times worse as False Positives, based on the business case of Private Equity client. The final model I chose was teh Random Forest.  The accuracy of the model was 83% meaning that is classified 83% of the firms to the good category. From the actual not fast growing firms the model predicted 92% correctly, while from the actual fast growing ones it predicted 30% right. As the number of firms that are actually fast growing is much lower only 16% of our data, so it is more difficult to predict them then to predict non fast growing companies. From the firms the model predicted to be fast growing 43% actually turned out to be fast growing. The expected loss is xxx, meaning the expected loss per purchase is xxx. This is lower to the xxx of the worst model, meaning that building a better model yielded in xxx savings.
+

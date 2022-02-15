@@ -28,7 +28,7 @@ library(rpart.plot)
 source("theme_bg.R")          
 source("da_helper_functions.R")
 
-data <- read_csv("data/bisnode_firms_clean.csv")
+data <- read_csv("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/data/bisnode_firms_clean.csv")
 
 output <- paste0("output/")
 
@@ -292,7 +292,7 @@ logit_summary1 <- data.frame("Number of predictors" = unlist(nvars),
                              "CV RMSE" = unlist(CV_RMSE),
                              "CV AUC" = unlist(CV_AUC))
 logit_summary1
-
+write.csv(logit_summary1, file="exp_logit_summary1.csv",row.names=TRUE)
 
 #################################
 #         Random forest         #
@@ -319,12 +319,13 @@ rf_summary <- data.frame("CV RMSE" = unlist(CV_RMSE),
                          "CV AUC" = unlist(CV_AUC))
 
 rf_summary
+write.csv(rf_summary, file="exp_rf_summary.csv",row.names=TRUE)
 
 #################################
 #         Model selection       #
 #################################
 
-best_no_loss <- logit_models[["X4"]]
+best_no_loss <- logit_models[["X3"]]
 
 predicted_probabilities_holdout <- predict(best_no_loss, newdata = data_holdout, type = "prob")
 data_holdout[,"best_no_loss_pred"] <- predicted_probabilities_holdout[,"fast_growth"]
@@ -373,8 +374,11 @@ ggplot(
 # continuous ROC on holdout with best model (Logit 4) -------------------------------------------
 roc_obj_holdout <- roc(data_holdout$fast_growth, data_holdout$best_no_loss_pred)
 
-createRocPlot(roc_obj_holdout, "best_no_loss_roc_plot_holdout")
+plot_ROC <- createRocPlot(roc_obj_holdout, "best_no_loss_roc_plot_holdout")
 
+png('plot_ROC.png', width=400, height=300)
+plot(plot_ROC)
+dev.off()
 
 # Confusion table with different thresholds ----------------------------------------------------------
 
@@ -596,19 +600,25 @@ summary_results <- data.frame("Number of predictors" = unlist(nvars),
                               "CV threshold" = unlist(best_tresholds),
                               "CV expected Loss" = unlist(expected_loss))
 
-model_names <- c("Logit X1", "Logit X3",
+model_names <- c("Logit X1", "Logit X4",
                  "Logit LASSO","RF probability")
 summary_results <- summary_results %>%
-  filter(rownames(.) %in% c("X1", "X3", "LASSO", "rf_p"))
+  filter(rownames(.) %in% c("X1", "X4", "LASSO", "rf_p"))
 rownames(summary_results) <- model_names
+
+summary_results
+write_csv(summary_results, file="exp_summary_results.csv")
 
 
 # Calibration curve -----------------------------------------------------------
 # how well do estimated vs actual event probabilities relate to each other?
 
-create_calibration_plot(data_holdout, 
+plot_calibration <- create_calibration_plot(data_holdout, 
                         file_name = "logit-X3-calibration", 
                         prob_var = "best_logit_with_loss_pred", 
                         actual_var = "fast_growth",
                         n_bins = 10)
 
+png('plot_calibration.png', width=400, height=300)
+plot(plot_calibration)
+dev.off()
