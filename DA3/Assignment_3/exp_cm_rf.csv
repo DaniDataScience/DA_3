@@ -1,2 +1,3 @@
-"","CV.RMSE","CV.AUC","Avg.of.optimal.thresholds","Threshold.for.Fold5","Avg.expected.loss","Expected.loss.for.Fold5"
-"1",0.290150565840305,0.777198882999129,0.128048621675284,0.145487861811391,0.170676921982939,0.144429708222812
+"","fast_growth","no_fast_growth"
+"fast_growth",228,727
+"no_fast_growth",86,1786
