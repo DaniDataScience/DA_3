@@ -21,6 +21,7 @@ library(fixest)
 library(ranger)
 library(rpart)
 library(rpart.plot)
+library(data.table)
 
 # set working directory
 setwd(getSrcDirectory()[1])
@@ -605,7 +606,7 @@ summary_results <- summary_results %>%
 rownames(summary_results) <- model_names
 
 summary_results
-write_csv(summary_results, file="exp_summary_results.csv")
+write.csv(summary_results, file="exp_summary_results.csv", row.names=TRUE)
 
 
 # Calibration curve

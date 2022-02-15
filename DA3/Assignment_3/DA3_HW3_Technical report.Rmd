@@ -142,7 +142,7 @@ logit_summary1 %>%
 #### Random Forest
 Random forest was based on using unchanged variables mostly. This is due to the random Forest "figuring out" functional forms by splits and conditional means, so adding higher orders and modified functional forms was not necessary.
 
-The RF was run with growing 500 trees, with 10 and 15 as the minimum number of observations  and 5, 6 or 7 variables in each split. The Random Forest performed slightly worse than the X3 model in terms os AUS? but gave a better RMSE
+The RF was run with growing 500 trees, with 10 and 15 as the minimum number of observations  and 5, 6 or 7 variables in each split. The Random Forest performed slightly worse than the X3 model in terms os AUS but gave a slightly better RMSE.
 ```{r, message=F, warning=F}
 library(kableExtra)
 exp_rf_summary<- read.csv("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/exp_rf_summary.csv")
@@ -153,7 +153,7 @@ exp_rf_summary %>%
 ```
 
 #### Model results
-I used the X3 Logit model to calculate predictions on the holdout set. The calibration curve show our model performance. We can see that for values below 0.4, the model did a pretty good job, however, above 0.4 the model was too conservative, it predicted lower values (e.g. 0.5 instead of 0.7).
+Before finding the best thresholds for prediction, I created calibration and the ROC plot for the best model so far, the X3 Logit model. The calibration curve show the model performance. We can see that for values below 0.4, the model did a pretty good job, however, above 0.4 the model was too conservative, it predicted lower values (e.g. 0.5 instead of 0.7).
 
 ```{r, echo=FALSE, out.width="50%", fig.cap="Calibration plot for X3", fig.align = 'center'}
 library(kableExtra)
@@ -161,7 +161,7 @@ knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/
 
 ```
 
-Below I included the ROC plot and the area under the curve for X3.  
+Below I included the ROC plot and the area under the curve for X3, showing the AUC colored. From these graphs we can see the effects of choosing a higher/lower threshold on FN and FP values.
 ```{r, echo=FALSE, out.width="50%", fig.cap="ROC plot for X3", fig.align = 'center'}
 library(kableExtra)
 knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/plot_ROC.png")
@@ -170,17 +170,26 @@ knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/
 
 ## Classification
 #### Setting treshold
-In order to classify the predictions into categories of fast growth / not fast growth, I had to select a threshold. I used the loss function explained under the chapter "Business Case", with cost=7. Based on the formula the optimal classification threshold would be 1/(1+7) = 0.125, but also used an algorith to calculate optimal thresholds. The results can be found below:
+In order to classify the predictions into categories of fast growth / not fast growth, I selected a threshold. I used the loss function explained under the chapter "Business Case", with cost=7. Based on the formula the optimal classification threshold would be 1/(1+7) = 0.125, but also used an algorithm to calculate optimal thresholds. The results can be found below:
 
 ```{r, echo=FALSE, out.width="50%", fig.cap="CV thresholds and Expected loss", fig.align = 'center'}
 library(kableExtra)
+summary_results<- read.csv("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/exp_summary_results.csv")
 
-
+summary_results %>% 
+  kbl() %>% 
+  kable_classic(full_width = F, html_font = "Cambria")
 ```
 #### Model choice and evaluation
-Based table expected loss in the table above, the random forest is the best model to use due to lowest expected losses, followed by .... Interestingly, ordering the models based on AUC would yield a different list.
+Based table expected loss in the table above, the random forest is the best model to use due to lowest expected losses, followed by X3 Logit model, and then LASSO. Interestingly, ordering the models based on AUC would yield a different list, with X3 Logit being the best, followed by LASSO.
 
-On the holdout set for my chosen model, the Random Forest, the expected loss is 0.39. This is even smaller than what we got for the train data. Below is the confusion table for the model, showing the choices made by the model, in comparison to the actual values. Based on this the model performance is the following:
+On the holdout set for my chosen model, the Random Forest, the expected loss is 0.04. This is even smaller than what I got for the train data. Below is the confusion table for the model, showing the choices made by the model, in comparison to the actual values. Based on this the model performance is the following:
+
+```{r, echo=FALSE, out.width="50%", fig.cap="Confision matrix for Random Forest", fig.align = 'center'}
+library(kableExtra)
+knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/plot_cm_rf.png")
+```
+
 
 Accuracy is 82.6%
 Sensitivity is 30.5%
@@ -188,5 +197,5 @@ Specificity is 92.4%
 Correctly predicted positive 43.1% (115/(115+152))
 
 #### Summary
-The task was to select fast growing firms, defined as firms growing at least 50% annually. I buil Logit, LASSO, and Random Forest models. I defined the loss function with False Negatives being 7 times worse as False Positives, based on the business case of Private Equity client. The final model I chose was teh Random Forest.  The accuracy of the model was 83% meaning that is classified 83% of the firms to the good category. From the actual not fast growing firms the model predicted 92% correctly, while from the actual fast growing ones it predicted 30% right. As the number of firms that are actually fast growing is much lower only 16% of our data, so it is more difficult to predict them then to predict non fast growing companies. From the firms the model predicted to be fast growing 43% actually turned out to be fast growing. The expected loss is xxx, meaning the expected loss per purchase is xxx. This is lower to the xxx of the worst model, meaning that building a better model yielded in xxx savings.
+The task was to select fast growing firms, defined as firms growing at least 50% annually.For this, I built Logit, LASSO, and Random Forest models sing the Bisnode dataset on firms. I defined the loss function with False Negatives being 7 times worse as False Positives, based on the business case of Private Equity client. The final model I chose was the Random Forest.  The accuracy of the model was 83% meaning that is classified 83% of the firms to the good category. From the actual not fast growing firms the model predicted 92% correctly, while from the actual fast growing ones it predicted 30% right. As the number of firms that are actually fast growing is much lower only 16% of our data, so it is more difficult to predict them then to predict non fast growing companies. From the firms the model predicted to be fast growing 43% actually turned out to be fast growing. The expected loss is xxx, meaning the expected loss per purchase is xxx. This is lower to the xxx of the worst model, meaning that building a better model yielded in xxx savings.
 

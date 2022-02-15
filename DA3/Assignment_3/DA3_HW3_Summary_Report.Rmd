@@ -22,7 +22,7 @@ For this, I buil Logit, LASSO, and Random Forest models. The data was used for t
 I defined the loss function with False Negatives being 7 times worse as False Positives, based on the opportunity of realizing 50% annual growth on the initial investment of EUR 100,000 for 5 years of holding period leading to 700,000 in profits.
 
 
-I built 3 models, Logit, LASSO and Random Forest. The X3 model gave teh best prediction results, followed by the random forest. I selected the classification threshold as xxx with an algorythm, which is very close to the formula of 1/(1+7)=0.125. 
+I built 3 models, Logit, LASSO and Random Forest. The X3 model gave the best prediction results, followed by the random forest. I selected the classification threshold as xxx with an algorythm, which is very close to the formula of 1/(1+7)=0.125. 
 
 Based on this threshold, I got the following results:
 ```{r}
@@ -73,7 +73,7 @@ knitr::include_graphics("")
 ```
 
 #### Model choice and evaluation
-Based table expected loss in the table above, the random forest is the best model to use due to lowest expected losses, followed by .... Interestingly, ordering the models based on AUC would yield a different list.
+Based table expected loss in the table above, the Random Forest is the best model to use due to lowest expected losses, followed by .... Interestingly, ordering the models based on AUC would yield a different list.
 
 On the holdout set for my chosen model, the Random Forest, the expected loss is 0.39. This is even smaller than what we got for the train data. Below is the confusion table for the model, showing the choices made by the model, in comparison to the actual values. Based on this the model performance is the following:
 
