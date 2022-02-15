@@ -11,27 +11,27 @@ output:
 
 ## Abstract
 FastInvest, a newly established Private Equity aims to invest in companies that have a potential of growing rapidly in the next years. The goal of this project was to identify firms with such potential using the tools of prediction and classification by using logit, lasso, and random forest models. 
-
-## Goal and data used
 The goal of this technical report is to detail decisions made during the analysis.
 
+## Data used
+.
 The data was used for this analysis was collected, maintained, and cleaned by Bisnode, a major
 European business information company, containing financial, management and other data on all companies in the EU. The analysis focused on the range of 2010-2015
 
 ## Business case 
 FastInvest aims to invest EUR 100,000 in each firm identified as fast growing. 
-Based on their investment policy they purchase firms that are expected to grow by at lest 50% annually, and hold them firms for 5 years.
+Based on their investment policy they purchase firms that are expected to grow by at lest 50% annually, and hold them for 5 years.
 
 #### Definition of fast growing firms
 Based on the business requirements, the definition of fast growing firms is based on the growth rate of 2 years, from 2012 to 2014, reaching at least a 50% growth in revenues annually. The two years span aims to ensure that the growth is not due to an extraordinary event, and that the fast growth can be expected to remain in the holding period of 5 years. 
 
 In the cleaned data set used for predicting, this resulted in the following distribution:
-```{r, echo=FALSE, out.width="50%", fig.cap="Histogram of CAGR", fig.align = 'center'}
+```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="50%", fig.cap="Histogram of CAGR", fig.align = 'center'}
 library(kableExtra)
-data <- read_csv("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/data/bisnode_firms_clean.csv")
-train_indices <- as.integer(createDataPartition(data$fast_growth, p = 0.8, list = FALSE))
-data_train <- data[train_indices, ]
-data_holdout <- data[-train_indices, ]
+library(tidyverse)
+library(dplyr)
+data <- read.csv("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/data/bisnode_firms_clean.csv")
+
 
 data %>% 
   group_by(fast_growth_f) %>% 
@@ -42,11 +42,11 @@ data %>%
 
 ```
 
-
 #### Definition of loss function
-Consequentially, the loss function needs to reflect this investment rationale:
-- An investment of EUR 100,000 at 50% annual growth will lead to EUR 780,000 USD, a profit of USD 700,000. This is a conservative estimation, as the average of growth rates for companies labelled as "fast growing" is 150% based on the cleaned Bisnode dataset
-- This leads to a False Negative decision resulting in EUR 700.000 USD loss (cost of profit lost from not investing in the company)
+Consequentially, the loss function needed to reflect the investment rationale:
+
+- An investment of EUR 100,000 at 50% annual growth will lead to EUR 800,000 USD, a profit of USD 700,000. This is a conservative estimation, as the average of growth rates for companies labelled as "fast growing" is 150% based on the cleaned Bisnode dataset
+- This leads to a False Negative decision resulting in EUR 700,000 USD loss (cost of profit lost from not investing in the company)
 - While a False Positive decision results in the loss of the EUR 100,000 invested (assuming that the investment of the PE would be stuck)
 
 Based on the business rationale, I set the cost function as FN/FP = 7
@@ -62,8 +62,8 @@ I added the CAGR of 2012-2014, and the target variable to predict: the fast-grow
 
 I also added explanatory variables, such as log sales, previous CAGRs (2010-'11 and 2011-'12), foreign management variable and CEO age. I included ratios for key financials by dividing all balance sheet elements with totalassets, and similarly with profit and loss statement elements. 
 
-### Droping variables, iImputation  corrections
-I dropped variables that had too many missing values (above 15,000 in raw dataset). I used winsorization to correct values for certain items that are not possible based on domain knowledge, and flagged these events sheet (e.g. negative assets, sales), and I created category variables and created factors. In the end we dropped observations with too many missing values in key variables and we finished with 116 variables and 11 910 observations.
+### Droping variables, Imputation  corrections
+I dropped variables that had too many missing values (above 15,000 in raw dataset). I used winsorization to correct values for certain items that are not possible based on domain knowledge, and flagged these events sheet (e.g. negative assets, sales), and I created category variables and created factors.
 
 In the end, I had the following distributions:
 ```{r, echo=FALSE, out.width="50%", fig.cap="Histogram of CAGR", fig.align = 'center'}
@@ -71,18 +71,22 @@ library(kableExtra)
 knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/plot_cagr_hist.png")
 ```
 
-```{r, echo=FALSE, out.width="50%", fig.cap="Histogram of CAGR", fig.align = 'center'}
+```{r, echo=FALSE, out.width="50%", fig.cap="Histogram of log sales", fig.align = 'center'}
 library(kableExtra)
 knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/plot_cagr_hist.png")
 ```
 
+The resulf of winsorisation of log sales:
 ```{r, echo=FALSE, out.width="50%", fig.cap="Winsorisation log sales difference", fig.align = 'center'}
 library(kableExtra)
 knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/winsorisation.png")
 ```
-## Prdiction process
+## Modeling process
+I created 3 types of models: logit, LASSO and Random Forest. First I predicted the probabilities of firm being fast-growing or not, using 5-fold cross-validation on the training set. I selected preferred models, and used a loss function and a threshold to categorize the prediction results into fast growing / not fast growing. I evaluated the model with the smallest loss on the holdout set as a final result, and created the confusion matrix for evaluation. 
+
 #### Creating models
 I grouped variables according to their meaning, and created formulas for the models based on that:
+
 - Raw variables are key variables such as main profit and loss and balance sheet elements
 - Engine variables 1 are other profit and loss and balance sheet elements
 - Engine variables 2 are quadratic transformation of  key variables (profit and loss, income before tax, extra profit and loss)
@@ -113,7 +117,7 @@ I created a holdout set from the 20% of the data. The total set, the holdout set
 The best model was X3 logit model based on giving the largest AUC result. 
 
 #### Logit models
-I evaluated the 5 logit models based on the cross-validated RMSE and AUC. Model X4 provided the best results in term of AUC, but it is much more complex than X3.  
+I evaluated the 5 logit models based on the cross-validated RMSE and AUC. Model X4 provided the best results in term of AUC, but it is much more complex than X3, which is my preferred model. 
 
 ```{r, echo=F, message=F, warning=F, fig.cap="Summary of logit results"}
 
@@ -136,13 +140,13 @@ logit_summary1 %>%
 ```
 
 #### Random Forest
-Random forest was based on using raw variables mostly with additional ones. This is due to the random forst +figuring out" functional forms by splits and conditional means, so adding higher orders and modified functional forms is not neccessary.
+Random forest was based on using unchanged variables mostly. This is due to the random Forest "figuring out" functional forms by splits and conditional means, so adding higher orders and modified functional forms was not necessary.
 
 The RF was run with growing 500 trees, with 10 and 15 as the minimum number of observations  and 5, 6 or 7 variables in each split. The Random Forest performed slightly worse than the X3 model in terms os AUS? but gave a better RMSE
-```{r}
+```{r, message=F, warning=F}
 library(kableExtra)
-logit_summary1<- read.csv("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/exp_rf_summary.csv")
-rf_summary %>% 
+exp_rf_summary<- read.csv("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/exp_rf_summary.csv")
+exp_rf_summary %>% 
   slice(c(3,7)) %>% 
   kbl() %>% 
   kable_classic(full_width = F, html_font = "Cambria")
@@ -170,7 +174,7 @@ In order to classify the predictions into categories of fast growth / not fast g
 
 ```{r, echo=FALSE, out.width="50%", fig.cap="CV thresholds and Expected loss", fig.align = 'center'}
 library(kableExtra)
-knitr::include_graphics("")
+
 
 ```
 #### Model choice and evaluation

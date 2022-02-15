@@ -1,4 +1,4 @@
-# ------------------------------------------------------------------------------------------------------
+
 #### SET UP
 rm(list=ls())
 
@@ -22,7 +22,8 @@ library(ranger)
 library(rpart)
 library(rpart.plot)
 
-
+# set working directory
+setwd(getSrcDirectory()[1])
 
 # set data dir, data used
 source("theme_bg.R")          
@@ -110,12 +111,12 @@ rfvars  <-  c("sales_mil", "d1_sales_mil_log", rawvars, hr, firm, qualityvars)
 
 
 ########################################################
-#                                                      #
-#         ---------- Model building ----------         #
-#                                                      #
-########################################################
+#                                                      
+#         ---------- Model building ----------         
+#                                                      
 
-# separate datasets  (train and holdout) -------------------------------------------------------
+
+# separate datasets  (train and holdout
 
 set.seed(2021)
 
@@ -134,7 +135,7 @@ Hmisc::describe(data_holdout
 # The proportion of fast growth firms are really similar in all the sets, around 11%
 
 
-# 5 fold cross-validation ----------------------------------------------------------------------
+# 5 fold cross-validation
 train_control <- trainControl(
   method = "cv",
   number = 5,
@@ -143,11 +144,11 @@ train_control <- trainControl(
   savePredictions = TRUE
 )
 
-# MODELS ------------------------------------------------------------------------------------
+# MODELS
 
 #################################
-#      Prob. LOGIT models       #
-#################################
+#      Prob. LOGIT models       
+
 
 logit_model_vars <- list("X1" = X1, "X2" = X2, "X3" = X3, "X4" = X4, "X5" = X5)
 
@@ -174,8 +175,8 @@ for (model_name in names(logit_model_vars)) {
 }
 
 #################################
-#        LASSO  models          #
-#################################
+#        LASSO  models          
+
 
 lambda <- 10^seq(-1, -4, length = 10)
 grid <- expand.grid("alpha" = 1, lambda = lambda)
@@ -205,8 +206,8 @@ CV_RMSE_folds[["LASSO"]] <- logit_lasso_model$resample[,c("Resample", "RMSE")]
 
 
 #################################
-#         Random forest         #
-#################################
+#         Random forest         
+
 
 # 5 fold cross-validation
 
@@ -245,15 +246,13 @@ CV_RMSE_folds[["rf_p"]] <- rf_model_p$resample[,c("Resample", "RMSE")]
 
 
 ##############################################################
-#                                                            #
-#                           PART III                         #
-# ----- Probability prediction with NO loss function ------  #
-#                                                            #
-##############################################################
+#                                                            
+# ----- Probability prediction with NO loss function ------  
+
 
 #################################
-#        Logit and LASOO        #
-#################################
+#        Logit and LASSO        
+
 
 # Calculate AUC for each folds --------------------------------
 CV_AUC_folds <- list()
@@ -295,8 +294,8 @@ logit_summary1
 write.csv(logit_summary1, file="exp_logit_summary1.csv",row.names=TRUE)
 
 #################################
-#         Random forest         #
-#################################
+#         Random forest         
+
 
 # Get average RMSE and AUC ------------------------------------
 auc <- list()
@@ -322,8 +321,8 @@ rf_summary
 write.csv(rf_summary, file="exp_rf_summary.csv",row.names=TRUE)
 
 #################################
-#         Model selection       #
-#################################
+#         Model selection       
+
 
 best_no_loss <- logit_models[["X3"]]
 
@@ -408,11 +407,10 @@ cm2
 
 
 ##############################################################
-#                                                            #
-#                           PART IIV                         #
-#  ----- Probability prediction with a loss function ------  #
-#                                                            #
-##############################################################
+#                                                            
+#  ----- Probability prediction with a loss function ------  
+#                                                            
+
 
 
 ##########
@@ -434,10 +432,10 @@ cost = FN/FP
 prevelance = sum(data_train$fast_growth)/length(data_train$fast_growth)
 
 #################################
-#        Logit and LASOO        #
-#################################
+#        Logit and LASOO        
 
-# Draw ROC Curve and find optimal threshold with loss function --------------------------
+
+# Draw ROC Curve and find optimal threshold with loss function 
 
 best_tresholds <- list()
 expected_loss <- list()
@@ -483,7 +481,7 @@ logit_summary2 <- data.frame("Avg of optimal thresholds" = unlist(best_tresholds
 
 logit_summary2
 
-# Create plots based on Fold5 in CV ----------------------------------------------
+# Create plots based on Fold5 in CV
 
 for (model_name in names(logit_cv_rocs)) {
   
@@ -495,10 +493,10 @@ for (model_name in names(logit_cv_rocs)) {
                            paste0(model_name, "_roc_plot"))
 }
 
-# Pick best model based on average expected loss ----------------------------------
+# Pick best model based on average expected loss 
 
 best_logit_with_loss <- logit_models[["X3"]]
-best_logit_optimal_treshold <- best_tresholds[["X3"]]
+best_logit_optimal_treshold <- best_tresholds[["X2"]]
 
 logit_predicted_probabilities_holdout <- predict(best_logit_with_loss, newdata = data_holdout, type = "prob")
 data_holdout[,"best_logit_with_loss_pred"] <- logit_predicted_probabilities_holdout[,"fast_growth"]
@@ -522,10 +520,10 @@ cm3
 
 
 #################################
-#         Random forest         #
-#################################
+#         Random forest         
 
-# Now use loss function and search for best thresholds and expected loss over folds -----
+
+# Now use loss function and search for best thresholds and expected loss over folds
 best_tresholds_cv <- list()
 expected_loss_cv <- list()
 
@@ -563,7 +561,7 @@ createLossPlot(roc_obj, best_treshold, "rf_p_loss_plot")
 createRocPlotWithOptimal(roc_obj, best_treshold, "rf_p_roc_plot")
 
 
-# Take model to holdout and estimate RMSE, AUC and expected loss ------------------------------------
+# Take model to holdout and estimate RMSE, AUC and expected loss
 
 rf_predicted_probabilities_holdout <- predict(rf_model_p, newdata = data_holdout, type = "prob")
 data_holdout$rf_p_prediction <- rf_predicted_probabilities_holdout[,"fast_growth"]
@@ -589,7 +587,7 @@ cm_object_rf<- confusionMatrix(holdout_prediction,data_holdout$fast_growth_f)
 cm_rf <- cm_object_rf$table
 cm_rf
 
-# Save output --------------------------------------------------------
+
 # Model selection is carried out on this CV RMSE
 
 nvars[["rf_p"]] <- length(rfvars)
@@ -600,17 +598,17 @@ summary_results <- data.frame("Number of predictors" = unlist(nvars),
                               "CV threshold" = unlist(best_tresholds),
                               "CV expected Loss" = unlist(expected_loss))
 
-model_names <- c("Logit X1", "Logit X4",
+model_names <- c("Logit X1", "Logit X3",
                  "Logit LASSO","RF probability")
 summary_results <- summary_results %>%
-  filter(rownames(.) %in% c("X1", "X4", "LASSO", "rf_p"))
+  filter(rownames(.) %in% c("X1", "X3", "LASSO", "rf_p"))
 rownames(summary_results) <- model_names
 
 summary_results
 write_csv(summary_results, file="exp_summary_results.csv")
 
 
-# Calibration curve -----------------------------------------------------------
+# Calibration curve
 # how well do estimated vs actual event probabilities relate to each other?
 
 plot_calibration <- create_calibration_plot(data_holdout, 

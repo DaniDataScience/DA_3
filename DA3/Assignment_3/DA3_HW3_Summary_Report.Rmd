@@ -55,22 +55,8 @@ library(kableExtra)
 knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/plot_cagr_hist.png")
 ```
 
-#### Creating models
-I grouped variables according to their meaning, and created formulas for the models. THe grouping description is detailed in the Technical Report. 
-From these groups, I created the following models:
-```{r, echo=F, message=F, warning=F, fig.cap="Models used"}
-models <- data.frame(row.names = c("X1 model", "X2 model", "X3 model", "X4 model", "X5 model", "LASSO", "Random Forest"))
-models$Variables[1] <- "Log sales + Log sales^2 + Change in Sales + Profit and loss + Industry"
-models$Variables[2] <- "X1 + Fixed assets + Equity + Current liabilities (and flags) + Age + Foreign management"
-models$Variables[3] <- "Log sales + Log sales^2 + Firm + Engine variables 1 + D1"
-models$Variables[4] <- "X3 + Engine variables 2 + Engine variables 3 + HR"
-models$Variables[5] <- "X4 + Interactions 1 and 2"
-models$Variables[6] <- "X5"
-models$Variables[7] <- "sales_mil + d1_sales_mil_log + rawvars + hr + firm + qualityvars"
-models %>% 
-  kbl() %>% 
-  kable_classic(full_width = F, html_font = "Cambria")
-```
+#### Modeling
+I created 3 types of models: logit, LASSO and Random Forest. First I predicted the probabilities of firm being fast-growing or not, using 5-fold cross-validation on the training set. I selected preferred models, and used a loss function and a threshold to categorize the prediction results into fast growing / not fast growing. I evaluated the model with the smallest loss on the holdout set as a final result, and created the confusion matrix for evaluation. 
 
 #### Results with no loss function 
 I created a holdout set from the 20% of the data. The total set, the holdout set and the train set as well had a c.11% ratio of fast growing firms. The train data was used for a 5-fold cross validation.
