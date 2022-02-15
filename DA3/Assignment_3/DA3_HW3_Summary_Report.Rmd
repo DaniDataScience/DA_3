@@ -9,7 +9,7 @@ output: html_document
 
 ## Abstract
 FastInvest aims to invest EUR 100,000 in firms identified as fast growing. 
-Based on their investment policy they purchase firms that are expected to grow by at lest 50% annually, and hold them for 5 years before realizing the prot from selling.
+Based on their investment policy they purchase firms that are expected to grow by at lest 50% annually, and hold them for 5 years before realizing the profit from selling.
 
 The goal of this project was to identify firms with such potential using the tools of prediction and classification by using logit, lasso, and random forest models. This report details summarise key results and the modeling process in a high level.
 
@@ -21,21 +21,26 @@ For this, I buil Logit, LASSO, and Random Forest models. The data was used for t
 
 I defined the loss function with False Negatives being 7 times worse as False Positives, based on the opportunity of realizing 50% annual growth on the initial investment of EUR 100,000 for 5 years of holding period leading to 700,000 in profits.
 
+I built 3 models, Logit, LASSO and Random Forest. Looking at results CV results from prediction, the X3 model gave the best prediction results, followed by the random forest. 
 
-I built 3 models, Logit, LASSO and Random Forest. The X3 model gave the best prediction results, followed by the random forest. I selected the classification threshold as xxx with an algorythm, which is very close to the formula of 1/(1+7)=0.125. 
+```{r, echo=F, message=F, warning=F, fig.cap="Summary of logit results"}
 
-Based on this threshold, I got the following results:
-```{r}
+library(kableExtra)
+logit_summary1<- read.csv("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/exp_logit_summary1.csv")
 
+logit_summary1 %>% 
+  slice(1:6) %>% 
+  kbl() %>% 
+  kable_classic(full_width = F, html_font = "Cambria")
 ```
 
-The accuracy of the model was 83% meaning that is classified 83% of the firms to the good category. From the actual not fast growing firms the model predicted 92% correctly, while from the actual fast growing ones it predicted 30% right. 
+I selected the classification threshold as 0.128 for random forest with an algorythm, which is very close to the formula of 0.1/(0.1+0.7)=0.125. Based on this threshold, the Random Forest is the best model, with 0.171 expected loss. However, based on AUC, the best model would be Logit X3.
 
-As the number of firms that are actually fast growing is much lower only 16% of our data, so it is more difficult to predict them then to predict non fast growing companies.
+The accuracy of the model was 71% meaning that is classified 71% of the firms into the correct categoryand identified not fast growing firms 71.1% correctly, while from the actual fast growing ones it predicted 72.6% right. 
 
-From the firms the model predicted to be fast growing 43% actually turned out to be fast growing. T
+From the firms the model predicted to be fast growing 24% actually turned out to be fast growing. This is more than twice as high as the occurance of fast growing firms in a random sample (11%)
 
-The expected loss is xxx, meaning the expected loss per purchase is xxx. This is lower to the xxx of the worst model, meaning that building a better model yielded in xxx savings.
+The expected loss is 0.4%, meaning the expected loss per purchase is xxx. This is lower to the xxx of the worst model, meaning that building a better model yielded in xxx savings.
 
 #### Data cleaning process
 The data originally had c.290,000 observations on c.46,000 firms from 2005 to 2016, with 48 variables. In the end of data cleaning I ended up with 14,139 observations (each a firm from 2012) and 116 variables.
@@ -50,7 +55,7 @@ I added explanatory variables, such as log sales, previous CAGRs (2010-'11 and 2
 I dropped variables that had too many missing values (above 15,000 in raw dataset). I used winsorization to correct values for certain items that are not possible based on domain knowledge, and flagged them.
 
 In the end, I had the following distributions:
-```{r, echo=FALSE, out.width="50%", fig.cap="Histogram of CAGR", fig.align = 'center'}
+```{r, echo=FALSE, message=F, warning=F,out.width="50%", fig.cap="Histogram of CAGR", fig.align = 'center'}
 library(kableExtra)
 knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/plot_cagr_hist.png")
 ```
@@ -66,19 +71,34 @@ The best model was X3 logit model based on giving the largest AUC result.
 #### Results with loss function
 Based on the formula the optimal classification threshold would be 1/(1+7) = 0.125, but also used an algorithm to calculate optimal thresholds. The results can be found below:
 
-```{r, echo=FALSE, out.width="50%", fig.cap="CV thresholds and Expected loss", fig.align = 'center'}
+```{r, echo=FALSE, message=F, warning=F,out.width="50%", fig.cap="CV thresholds and Expected loss", fig.align = 'center'}
 library(kableExtra)
-knitr::include_graphics("")
+summary_results<- read.csv("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/exp_summary_results.csv")
+
+summary_results %>% 
+  kbl() %>% 
+  kable_classic(full_width = F, html_font = "Cambria")
 
 ```
 
 #### Model choice and evaluation
-Based table expected loss in the table above, the Random Forest is the best model to use due to lowest expected losses, followed by .... Interestingly, ordering the models based on AUC would yield a different list.
+Based table expected loss in the table above, the Random Forest is the best model to use due to lowest expected losses, followed by Logit X3. Interestingly, ordering the models based on AUC would yield a different list
+
+```{r, message=F, warning=F}
+library(kableExtra)
+exp_cm_rf.csv<- read.csv("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/exp_cm_rf.csv")
+exp_cm_rf.csv %>% 
+  kbl() %>% 
+  kable_classic(full_width = F, html_font = "Cambria")
+Accuracy=(228+1786)/(228+727+86+1786)
+Sensitivity = 228 / (228 + 86)
+Specificity = 1786 / (1786 + 727)
+```
 
 On the holdout set for my chosen model, the Random Forest, the expected loss is 0.39. This is even smaller than what we got for the train data. Below is the confusion table for the model, showing the choices made by the model, in comparison to the actual values. Based on this the model performance is the following:
 
-Accuracy is 82.6%
-Sensitivity is 30.5%
-Specificity is 92.4%
-Correctly predicted positive 43.1% (115/(115+152))
+Accuracy is 71.2%
+Sensitivity is 72.6%
+Specificity is 71.1%
+Correctly predicted positive 23.9%
 

@@ -177,29 +177,19 @@ pre code {
 <h1>Assessment of fast growing firms</h1>
 <div id="abstract" class="section level2">
 <h2>Abstract</h2>
-<p>FastInvest, a newly established Private Equity aims to invest in companies that have a potential of growing rapidly in the next years. The goal of this project was to identify firms with such potential using the tools of prediction and classification by using logit, lasso, and random forest models.</p>
+<p>FastInvest, a newly established Private Equity aims to invest in companies that have a potential of growing rapidly in the next years. The goal of this project was to identify firms with such potential using the tools of prediction and classification by using logit, lasso, and random forest models. The goal of this technical report is to detail decisions made during the analysis.</p>
 </div>
-<div id="goal-and-data-used" class="section level2">
-<h2>Goal and data used</h2>
-<p>The goal of this technical report is to detail decisions made during the analysis.</p>
-<p>The data was used for this analysis was collected, maintained, and cleaned by Bisnode, a major European business information company, containing financial, management and other data on all companies in the EU. The analysis focused on the range of 2010-2015</p>
+<div id="data-used" class="section level2">
+<h2>Data used</h2>
+<p>. The data was used for this analysis was collected, maintained, and cleaned by Bisnode, a major European business information company, containing financial, management and other data on all companies in the EU. The analysis focused on the range of 2010-2015</p>
 </div>
 <div id="business-case" class="section level2">
 <h2>Business case</h2>
-<p>FastInvest aims to invest EUR 100,000 in each firm identified as fast growing. Based on their investment policy they purchase firms that are expected to grow by at lest 50% annually, and hold them firms for 5 years.</p>
+<p>FastInvest aims to invest EUR 100,000 in each firm identified as fast growing. Based on their investment policy they purchase firms that are expected to grow by at lest 50% annually, and hold them for 5 years.</p>
 <div id="definition-of-fast-growing-firms" class="section level4">
 <h4>Definition of fast growing firms</h4>
 <p>Based on the business requirements, the definition of fast growing firms is based on the growth rate of 2 years, from 2012 to 2014, reaching at least a 50% growth in revenues annually. The two years span aims to ensure that the growth is not due to an extraordinary event, and that the fast growth can be expected to remain in the holding period of 5 years.</p>
-<p>In the cleaned data set used for predicting, this resulted in the following distribution:</p>
-<pre><code>## -- Attaching packages --------------------------------------- tidyverse 1.3.1 --</code></pre>
-<pre><code>## v ggplot2 3.3.5     v purrr   0.3.4
-## v tibble  3.1.6     v dplyr   1.0.7
-## v tidyr   1.1.4     v stringr 1.4.0
-## v readr   2.1.1     v forcats 0.5.1</code></pre>
-<pre><code>## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
-## x dplyr::filter()     masks stats::filter()
-## x dplyr::group_rows() masks kableExtra::group_rows()
-## x dplyr::lag()        masks stats::lag()</code></pre>
+In the cleaned data set used for predicting, this resulted in the following distribution:
 <table class=" lightable-classic" style="font-family: Cambria; width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -242,7 +232,12 @@ no_fast_growth
 </div>
 <div id="definition-of-loss-function" class="section level4">
 <h4>Definition of loss function</h4>
-<p>Consequentially, the loss function needs to reflect this investment rationale: - An investment of EUR 100,000 at 50% annual growth will lead to EUR 780,000 USD, a profit of USD 700,000. This is a conservative estimation, as the average of growth rates for companies labelled as “fast growing” is 150% based on the cleaned Bisnode dataset - This leads to a False Negative decision resulting in EUR 700.000 USD loss (cost of profit lost from not investing in the company) - While a False Positive decision results in the loss of the EUR 100,000 invested (assuming that the investment of the PE would be stuck)</p>
+<p>Consequentially, the loss function needed to reflect the investment rationale:</p>
+<ul>
+<li>An investment of EUR 100,000 at 50% annual growth will lead to EUR 800,000 USD, a profit of USD 700,000. This is a conservative estimation, as the average of growth rates for companies labelled as “fast growing” is 150% based on the cleaned Bisnode dataset</li>
+<li>This leads to a False Negative decision resulting in EUR 700,000 USD loss (cost of profit lost from not investing in the company)</li>
+<li>While a False Positive decision results in the loss of the EUR 100,000 invested (assuming that the investment of the PE would be stuck)</li>
+</ul>
 <p>Based on the business rationale, I set the cost function as FN/FP = 7</p>
 </div>
 </div>
@@ -258,9 +253,9 @@ no_fast_growth
 <p>I added the CAGR of 2012-2014, and the target variable to predict: the fast-growth binary variable, based on the 50% CAGR threshold identified previously.</p>
 <p>I also added explanatory variables, such as log sales, previous CAGRs (2010-’11 and 2011-’12), foreign management variable and CEO age. I included ratios for key financials by dividing all balance sheet elements with totalassets, and similarly with profit and loss statement elements.</p>
 </div>
-<div id="droping-variables-iimputation-corrections" class="section level3">
-<h3>Droping variables, iImputation corrections</h3>
-<p>I dropped variables that had too many missing values (above 15,000 in raw dataset). I used winsorization to correct values for certain items that are not possible based on domain knowledge, and flagged these events sheet (e.g. negative assets, sales), and I created category variables and created factors. In the end we dropped observations with too many missing values in key variables and we finished with 116 variables and 11 910 observations.</p>
+<div id="droping-variables-imputation-corrections" class="section level3">
+<h3>Droping variables, Imputation corrections</h3>
+<p>I dropped variables that had too many missing values (above 15,000 in raw dataset). I used winsorization to correct values for certain items that are not possible based on domain knowledge, and flagged these events sheet (e.g. negative assets, sales), and I created category variables and created factors.</p>
 In the end, I had the following distributions:
 <div class="figure" style="text-align: center">
 <img src="data:image/png;base64,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" alt="Histogram of CAGR" width="50%" />
@@ -269,11 +264,12 @@ Histogram of CAGR
 </p>
 </div>
 <div class="figure" style="text-align: center">
-<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAAEsCAMAAADaaRXwAAAA3lBMVEUAAAAAADoAAGYAOpAAZrYAaIszMzM6AAA6ADo6AGY6OmY6OpA6ZmY6ZpA6ZrY6kLY6kNtNTU1NTW5NTY5NbqtNjshmAABmADpmAGZmOgBmOjpmOpBmZgBmtttmtv9uTU1uTY5uq+SOTU2OTY6ObquOjsiOq+SOyP+QOgCQOjqQOmaQkDqQ29uQ2/+rbk2r5P+2ZgC2Zjq2kDq2///Ijk3Ijm7IyP/I///bkDrb25Db27bb2//b///kq27kq47k///r6+v/tmb/yI7/25D/5Kv//7b//8j//9v//+T///+Gp37aAAAJg0lEQVR4nO2di3bTRhRFXUILhT5soAFKawivBNqU0KQktElDcGJX//9DlcZWZIuRNBrdK42tfRYrtuwcnWttrjS2lPEgQkFp0HUBaFUACUwACUwACUw1gHyDdFUbSG75k7u1C9PaRQEksCiABBYFkMCiABJYFEACiyoG8t8fo5+S2+nz0f3jdAEg2lHFQD7vREe78e3ZbnS2ky4ARDuqGMi/7xImRp93FwvJG5dPSFPFQP66BjJ9eZ4t0CG6UQ4dMn1xvNQuANGNqj6GXD47zha6BDJYknJUkEDMwCreWx2NRqOdEEZZg6+v1UsgBQKIbhRAxEwA0YsCiIsAYhVAdKMAImYCiF4UQFwEEKsAohsFEDETQPSiAOIigFgFEN0ogIiZAKIXBRAXAcQqgOhGAUTMBBC9KIC4CCBWAUQ3CiBiJoDoRQHERQCxCiC6UfWBdHZd+DKQzopQFx0iZmKXpRcFEBcBxCqA6EYBRMwEEL0ogLgIIFYBRDcKIGImgOhFAcRFALEKILpRABEzAUQvCiAuAohVANGNAoiYCSB6UQBxEUCsAohuFEDETADRiwKIiwBiFUB0owAiZgKIXhRAXNR3INlEpGe7ycK9d0sG4Sqc1Hcg11P1Ho12o+mrVYNwFU7qO5B0Muvph7hDLp+OHpx3PPd7369+z6Z7j4HE9y5fLxEU/m/hJDpkCUgUdT/3e9+BZNO9J98gEjdJ53O/9xxIOvd7Ospi7vdWongfImYCiF4UQFwEEKsAohsVPJClr9UBiE2tA8koAMQmgOhGAUTMBBDpqIYmgEhHNTQBRDqqoQkg0lENTQCRjmpoAoh0VEMTQKSjGpp6DcT9e4oB4lNFiexA3JsFID5VlAggFQKIbhRAxEwAAUhmEK6iRACpEEB0owAiZgIIQIyh5avBK4G0XI+26BAxE7ssgGQG4SpKBJAKAUQ3CiBiJoAAJDMIV1EigFQIILpRABEzAQQgmUG4ihIBpEIA0Y3KAbl6dLj4USSA6EatAJntzS912jotXgFAdKNsHVIqgOhG5Y8hJ0mH3GCX1ZqrqkMe7lesACC6UeyyxEw6u6yDccUKAKIble+QbY4hvibeGPYCSNwiv74pO7ADRDcqB2S2Nz4YT+7yxrA1V/Uo62DMRyfhADEdcsFHJz4mtWNI6SALIMpRjLLETDpA4t3V5LYZZeXnfu9oVtKeA5klQ975KGtl7vdsEl+A6EYVn6Bamft9sdDB3O89v/o9HmWZ3VaUm/s9W6BDdKOKR1krc7//CxAll/vH7ytzv3MM0XK5Awlk7veeA+F8iL+J8yF9AFItgOhGcT5EzMT5kD4A4XyIv4nzIX0AwvkQfxOjrB4AmdwqvfI9MwhXUaJeA0nOhpwMy1cAEN2oFSDJ8GryQ/kKWgEysH3RUV+BlL0JidoCYtv2ALEKILpRq0C253uJzj9cBIj7CgCiG7X+QCqm5QeITxV51QFS0SsA8akiL4C4rwAgsi6ASNQn6AKIRH2CLoBI1CfoAohEfYIugEjUJ+hqDqSNS8D9gLRRmbroEDETuyyAZAbhKvICiPsKACLrAohEfYIugEjUJ+gCiER9gi6ASNQn6AKIRH2CLoBI1CfoAohEfYIugEjUJ+gCiER9gi6ASNQn6AKIRH2CLoBI1CfoAohEfYIugEjUJ+gKGIj1r3QAUiVFIFUbHCA2AUTWBRDv+nRcAPGuT8cFEO/6dFwA8a5PxwUQ7/p0XADxrk/H5Q4knYjU3MY/7r1bMghXMS+iKRDr339uDpB0ql5zO321ahCuYl5EUyBLD2rUp+NyB5JOZm1uL5+OHpwrz/0uCUStSHUVA0mneze38b3L10sEhf9bzIugQyLnDoki/bnfAZLI8RiSTP+uPfc7QBJVjLKmL8/TUZb63O8ASbRJ70MAIlbFvAiARACpUZ+OCyDe9em4AOJdn44LIN716bgA4l2fjgsg3vXpuADiXZ+OCyDe9em4ggNScbkiQKokDsRrgwMkZ5CrAiCrAkhFfdougNSsT9sFkJr1absAUrM+bVdPgFRN0e9en7arJ0CW7jasT9sFkJr1absAUrM+bRdAatan7QJIzfq0XQCpWZ+2CyA169N2NQcifLW3OhDherXVTYfU+WrVps/71LdWHSJRheQGB4hAFQApNG0+EJ+PtQCiCGTprnN9AAFIKoDYBBCApGoRSOMZ4wBiUwMgyhscIDWr6B6I8wAYIO0Aye5VlAoQgKQCiE2bDETn6naA5AzuVbS3wQHiVEWYQCoGXABpG8jSgy5byU0AAUjkCKTNU7RNgdj2XpsHpIsN7glk6W6zK7QBUvP5OquqsUUrNkVdE0Csz1ubpaqDQgPS9cfrkkCWHsxealUHBQdEeYN2BMQ6PnHatk4CiMjz1r0XQOo9rxTlJR8g+bnfC2YlrThwbD4Qr+eL5Thvb7pgARLOq6x4PqBSSp53nNl6sWCZ+92vZVGRHOd+Txc0p2dSMa1dVL0OiQCiHdX4GAIQ2aiA5n5XMa1dVOd/Y6hsWrsogAQWBZDAogASWBRAAosCSGBR9YEgXdUF8gUgf2uwSd1HASSwqAZAkIYAEpgAEpgAEpg8gZzt5s+4q6mFCKPWXtL0+ej+cWGUH5Cj0W7+bImaWohI1N5Lismf7RRGeQGZfohXmjufqKYWIqKWX1L0ebcwyn+XlTvjrqYWIoxafEnTl+eFUfWBHI0enEcb1yFRiy9p+uK4OMq/QzbsGNLeS7p8dvzF9QqZGGWlau0lHY1Gox3hURZSE0ACE0ACE0ACE0ACE0AC0/oCme0NBuPkzsEwXfxqP5rcGgwGN8udV09OJ3dP9Sv00toCme0No6uH+1E0+f7t4XwxurhxmGxp83CJ4t8BiLjMJv37n7hBxidxo1xsJVv4/b55+MB0zsXgxm/jyZ3HNw5PBoOhMRzcjGZvft8bbH2887iqjzrS2gK5WGzPq0emK06G88WsQ+KfV9vjye14N/btYbwwe7N/9bPpjeTf7f3Y2FnxJVp7IAmJuCPMTXxQMccQA8d0xDj5mfyq+ZWL4fv9k+FilxUD6rL+Iq0tkMVR4Go7+fO8rdP5LssAWBxCvgAyufvn+OLHGANANGQO6ttD0yjxtjUH9WQXFQOId1HR9S5rvpxAmr25czj57skpQHSU9MZw9tYcCEwPDJJh8PygbtolPqj/YoBEJ/MB8snW6YLb1keAdKFAt3mpNheI6aCui6ivzQWypgJIYAJIYAJIYAJIYPofymJdTY54WXkAAAAASUVORK5CYII=" alt="Histogram of CAGR" width="50%" />
+<img src="data:image/png;base64,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" alt="Histogram of log sales" width="50%" />
 <p class="caption">
-Histogram of CAGR
+Histogram of log sales
 </p>
 </div>
+The resulf of winsorisation of log sales:
 <div class="figure" style="text-align: center">
 <img src="data:image/png;base64,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" alt="Winsorisation log sales difference" width="50%" />
 <p class="caption">
@@ -282,11 +278,22 @@ Winsorisation log sales difference
 </div>
 </div>
 </div>
-<div id="prdiction-process" class="section level2">
-<h2>Prdiction process</h2>
+<div id="modeling-process" class="section level2">
+<h2>Modeling process</h2>
+<p>I created 3 types of models: logit, LASSO and Random Forest. First I predicted the probabilities of firm being fast-growing or not, using 5-fold cross-validation on the training set. I selected preferred models, and used a loss function and a threshold to categorize the prediction results into fast growing / not fast growing. I evaluated the model with the smallest loss on the holdout set as a final result, and created the confusion matrix for evaluation.</p>
 <div id="creating-models" class="section level4">
 <h4>Creating models</h4>
-<p>I grouped variables according to their meaning, and created formulas for the models based on that: - Raw variables are key variables such as main profit and loss and balance sheet elements - Engine variables 1 are other profit and loss and balance sheet elements - Engine variables 2 are quadratic transformation of key variables (profit and loss, income before tax, extra profit and loss) - Engine variables 3 are flags of engine 2 variables, where modification was needed (winsorisation, imptation) - D1 are variables measuring change of sales - HR are data about management such as age and gender of CEO or average labor number - Firm are : properties of the firms like age of the company, region, etc. - Interactions 1 and 2 are interactions of variables</p>
+<p>I grouped variables according to their meaning, and created formulas for the models based on that:</p>
+<ul>
+<li>Raw variables are key variables such as main profit and loss and balance sheet elements</li>
+<li>Engine variables 1 are other profit and loss and balance sheet elements</li>
+<li>Engine variables 2 are quadratic transformation of key variables (profit and loss, income before tax, extra profit and loss)</li>
+<li>Engine variables 3 are flags of engine 2 variables, where modification was needed (winsorisation, imptation)</li>
+<li>D1 are variables measuring change of sales</li>
+<li>HR are data about management such as age and gender of CEO or average labor number</li>
+<li>Firm are : properties of the firms like age of the company, region, etc.</li>
+<li>Interactions 1 and 2 are interactions of variables</li>
+</ul>
 From these groups, I created the following models:
 <table class=" lightable-classic" style="font-family: Cambria; width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
@@ -365,7 +372,7 @@ sales_mil + d1_sales_mil_log + rawvars + hr + firm + qualityvars
 <p>The best model was X3 logit model based on giving the largest AUC result.</p>
 <div id="logit-models" class="section level4">
 <h4>Logit models</h4>
-<p>I evaluated the 5 logit models based on the cross-validated RMSE and AUC. Model X4 provided the best results in term of AUC, but it is much more complex than X3.</p>
+<p>I evaluated the 5 logit models based on the cross-validated RMSE and AUC. Model X4 provided the best results in term of AUC, but it is much more complex than X3, which is my preferred model.</p>
 <table class=" lightable-classic" style="font-family: Cambria; width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -511,8 +518,8 @@ LASSO
 </div>
 <div id="random-forest" class="section level4">
 <h4>Random Forest</h4>
-<p>Random forest was based on using raw variables mostly with additional ones. This is due to the random forst +figuring out” functional forms by splits and conditional means, so adding higher orders and modified functional forms is not neccessary.</p>
-<p>The RF was run with growing 500 trees, with 10 and 15 as the minimum number of observations and 5, 6 or 7 variables in each split. The Random Forest performed slightly worse than the X3 model in terms os AUS? but gave a better RMSE</p>
+<p>Random forest was based on using unchanged variables mostly. This is due to the random Forest “figuring out” functional forms by splits and conditional means, so adding higher orders and modified functional forms was not necessary.</p>
+<p>The RF was run with growing 500 trees, with 10 and 15 as the minimum number of observations and 5, 6 or 7 variables in each split. The Random Forest performed slightly worse than the X3 model in terms os AUS but gave a slightly better RMSE.</p>
 <pre class="r"><code>library(kableExtra)
 exp_rf_summary&lt;- read.csv(&quot;https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/exp_rf_summary.csv&quot;)
 exp_rf_summary %&gt;% 
@@ -561,15 +568,14 @@ rf_p
 </div>
 <div id="model-results" class="section level4">
 <h4>Model results</h4>
-<p>I used the X3 Logit model to calculate predictions on the holdout set. The calibration curve show our model performance. We can see that for values below 0.4, the model did a pretty good job, however, above 0.4 the model was too conservative, it predicted lower values (e.g. 0.5 instead of 0.7).</p>
+<p>Before finding the best thresholds for prediction, I created calibration and the ROC plot for the best model so far, the X3 Logit model. The calibration curve show the model performance. We can see that for values below 0.4, the model did a pretty good job, however, above 0.4 the model was too conservative, it predicted lower values (e.g. 0.5 instead of 0.7).</p>
 <div class="figure" style="text-align: center">
 <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAAEsCAMAAADaaRXwAAAA5FBMVEUAAAAQpT0zMzM6Ojo6OmY6OpA6Xow6ZmY6ZpBmOjpmOmZmOpBmZjpmZmZmZpBmZrZmkGZmkJBmkLZmkNtmtpBmtrZmttt1j69/f3+QOjqQOmaQZjqQZmaQZpCQkGaQkJCQkLaQkNuQtpCQtraQttuQtv+Q27aQ29uQ2/+zs7O2Zjq2Zma2ZpC2kGa2kJC2kLa2tma2tpC2tra2ttu229u22/+2/9u2///bkGbbkJDbtmbbtpDbtrbb25Db27bb29vb2//b/7bb/9vb////tpD/trb/25D/27b/29v//7b//9v///9EBrGOAAAO5klEQVR4nO2di1bcRhKG3U6sxKxhAcfGWWZgbMiaGEN2szgMdtY4GdYE6f3fZ3WbGV26q1rqi6pHVecEQ/Sf6lZ/0xpdflU/SjhIxaOhO8BRDwZCLBgIsWAgxAIE8uhnDo+hAaT45xXO1Y7EX0sUd4mB+JAwEGIScyDxIv1xu6hupNj7UCTGQOIfz5Jk/vZ4kTx+/PjRKw5/oZghdymQy8XNdWUjxY9TKBJcIwR8yGIgViWoRmDfIXdnnz7c/bBf3Uin9+FJMI1IMCDVYCDGElgjREXCQHxIQI2oSRiIDwmkEXUJA/EhUWuEaEgYiA+JUiNaEgbiQ6LQCNGWMBAfErlGyCQMxIdEqhFSCQPxIZFohJBLGIgPSVvTxMFAvEpamjYPBuJT0tC0DlcVCQPxIalrZDgYiFdJTSPnwUB8Sioa6eGqImEgPiRrjQoHA/EqWWqU0yNhIF4lpQbAwUC8SgoNyIOB+JRkGuhwVUnDQHxIUg2CAwNyy85Fm5LkFcoDBpKbFi+uLtm5aCeE0JbKgeQeOTbK2ZKIDmkAIPfHUwZiQSJElzRyIHc/7H/6MGfnog2J0NBUJHyW5VgiOqZhIE4lQuCaehoG4lLSdMFppGEgDiVCQ9OUMBBnEtG2JWqkYSCuJEJDI5EwEEcSqS1RIw0DcSJp3tplIMNKWrcSGciQEsmTDwYyoARwwWmkYSC2JdInHwxkKIniQS0DGUiCuOA00jAQmxLlg1oG4khyAEkAXwkDcSOJIgmRpQTyMTAQB5IoipKDSCWBbVcMxLIkymgUv8klei44DQkDwSUrGHm0iGQSzHbFQKxJ6jSyaP79CnWJWgDCzsU82jTy/9vIgrsSjYHkzsWbkddcTGmottT+0ncl6gRglLvbHq8va/UljmZZFUu01Bm2krajeqCSS9bb9VyJxkAK5+KLnUVl4yiAHDS/NlTMin+EUEt6dobPsqrR/hJXZcl12q5EBtJLkl2Ja2eJmsUSLXWGgSxDeoYLZFldfDAQFxI5DiCLWH2zMxD7EhUOdZZsekTaDTGQThI1DlWW8nCleanSqTMMBMKhyLK6VxJpNsRAtCUwDnmWyr2rSK8hBqIpwXDIstRv7UYMxJ4ExyHJ0ry1GzEQS5JIaygbEtmTDwZiQxJpHv3rEtmTj4iBmEt07603JPInURoHPgYCSqIO19gViepB7as+X0VKyfiAoA87FFkAVyJOhIGoJLUzqy5ZQFdij7NnlWRcQBonuvpZsGKJGBEGIpNoP31qSXBXYo8LfrlkNEAOJJeBmlkQ21WRBSbCQJqSA8gmDWfRdCV2v0cplQBGufj2S3Vj2EBkPPSyaLsSISKmQHKjXPx5ujlGOZXnDYsOxfl6t1ELwJeVzM+qG4OeIfJPL55FxwW3lqjniOkMyYHEs6S6MWQgXR+YL6NLsURTDQgkN8o9vE6qGwMGovrkIlm6FUuEGuKzrMQCkI7FEg1aqkrGAKTf57ZrsUSwLQZSkfT6qu1eLBFsjYFoXR6os/QolriMjgbIpoSBSKJyr6RHX/rfE8hi44H0uH6WLBncpS8HB20iDETrnp88S89iievgGaKWdL8H27i1S+TCsBajAqJYMtiwLwyklHR+bGRQLNFUMwYgXR+sGhVLNNWMAEhX64FZsURTDQNpZJE/qGUg9lrq5paClww27AsDSbQcnpUs5sUSTTWbDkTHA72SqH0lDMRWmi5A8CWDzfrCQDTfoykldoolmmrkQO6npy1liED03jTLJbaKJZpqVDPk0zf7i7pys4FYK5ZoKU1zhuxcJfcf6soAgWi/HoUW5xscyIfk91V1v2BL/Om+Pq6/ZLChpDeQ+N1329mXSO5cnL8NdHFibQeh3eJ8dqIO5OvJZDurWpYZ5eLDUEv82SzON/AM+bq9vQYyDbTEn2ZNmM4uOANJfyDlDClK/O1PQyzxp/lGp2ZxvqG/1B+mb3YaZ72BAYlwSbK8+KC4Sw0gX39K/nfdUG4gkL4uuL4Sk++Q3b8HPUO03nnuUJxv6BnycPjtk5CBRLikcjFIcZeah6zTWciHLJ2X0HstGWwo6Q8k/uVfIR+ycCDC0JbYTzLWsyy8JrULFxyfZakkeJmG3ksGG0rGeZbVXNajJWjd2qW4S61D1r+DPWRhQFy54PiQJZdghUz6FecbGkhy8fR5UxkGEOlaXeuQPomiuEvtGdKKIIAglWVMlww2lPQHcl/c7a1FCEAkCz5WJMrifE76YpZmM77UZbV+1hLHLjj+Um9LwPcsbSwZbCgxOWTtbu+E5zqR+XhLCVacz3pfDNNshHMReDXcgwuOgTQlQPEEneJ8HiQGh6zSl1UN6kDU5UUwGxzFXZL7skqjXBgl/pRALC4ZbCgxOO0trkNyo9zd2xQIfaOcyhbXpTgfoZBfqecV5ea7IRjlVC9K+XPB+bhSL5fBLYoukgai5OGvv44PWS+mK6Pcixl9o5wcSPfifG4lBlfqp/8J6kpdwcNeZ4YGklx8E9Ltd4DHhgC5n161lIEB6V2cz6HE5Er909/COWRJedjtzNBAslfamkEWCMhjQ4CUZ1m1oApEwkMMYUvks6xEBcS4OJ8rySjOslo8nBTnGxyIJGgCafNw0hkGopkG5bEZQJYvfdYiBCDOivMNPUNCeWGnycNZZ4YGEsgLO43aSw6L8w0NJIwXduq1lxQPajcDyP1kO4BDVg2I2+J8QwNJg/4hq1p7yXVxvqGBpDOE/IVhtfYSBRecWyAB2IAqQNwX5xsYyMoGVA1iQNbFsHwU5xt6hsSzzzPaM2Rde4mKC87tdQh19/u69pKf4nxDA0kutl5m/9xWpglJIGixxE0BknzMHuHmzsVk/pycc3FpUwzTlagTjS/1i73crZgb5b6evK5upPBxWt7CImVLdDlD7idrIA9Pnz0hZpQreQhatkS3h6z406rEX/JAbYYUQLwW5xsciCTIAMl5eC7Ox0DUmoKH584wELUmA+K9OB8DUWqiQYrzMRCVJhqmOB8DUWjqPEiN9kiBCLK2xFECiYYqzsdApJrhivMxEJmGtgtufEAEUp3MZWcYSEsjBFgMy3FnGEhTI+BiWK47w0AaGgHVXvLQGQZS0wgFD1KjPSIgKQ517SU/nWEga41yevjsDANZaQS0JDql0R4JEJAHqdEeBRAB8yA12mMAkt0rgXiQGm0vQIZdnBjlQWq0fQDJnYs3V8eDLE6cF0vUXmB400IOpCjx9/F5daOvj1PmglNdfthtKaAZUtZcHGJx4qw4H4aD1mj7AFLWXPS/OLHAvz78dcaeJNizrPxJVERpKEcNpHhQG5EayjEDKR7URrSGcsRAVjxIDeVogYg1D1JDOVYgpa8kgjR2WhpEEhyQcnpEkMZOS8NIAgNSPVy5bWkoSVhAaocrpy0NJgkJiGjxIDWUowOydIlGgMZOS0NKwgEi40FqKMcFREh5kBrKUQFZmdqxpemNWxpaEgaQ1fTAlqY3bmlwSQhAFIcrBy0RkAQARHW4st8SBQl9IEsekoXpaQ3lOICINQ/Jux+khnIUQNaHKykPUkNJBYhDo5xQnl11ShOUxBhIbpS7uHp/bd8otyzOF43WCgcH5MuKHdiA1Ce7ndIEJjGeITmQeHpd3Wija6Islgg7EykNJREguVHu3Xc7lmdIuWQwZhSlNJREgNTCGpCiWCLq2yU1lBsMpCyWuHk+0UCB1H0MvdOEKaEHpHSJatlESQ3lhgJZ4rDd+1Ak1ICUJmrNLKSGchOBFO986JvgSA3lBgKp4mAgqMQ5EFE/tWIgiMQxkFYBAAaCSNwCEa0rDwaCSFwCEZLySgwEkTgEIg4k1+UMBJG4AyKkD8wZCCJxBUQI+QNzBoJIHAFRFoNjIIjEDRB1cT4GgkhcAMkOVwY9IzWUmwAEqF3JQFCJfSAgDwaCSWwDgQ5XmllIDSUVILlpMe7uXISnh14WUkNJBEjuXIx/POu4OLEQ4y3NZysg5+LdWXUjDjnFYcPiQ+qzTWSG9AKCHq40e0ZqKIkAKRYn7gQk+zb33vtQJAOcZQl7lcdIDWWoQITFymOkhjJMIMuLDwZinsYGkNW3OQMxT2MOpLLuCgMxT2MMRHQzXTEQRGIKRNgvdEVqKAMD0lgmioGYpzEC0rT5MBDzNCZAWvdKGIh5mv5AJKvaMRDzNL2ByGxwDMQ8TV8gUhscAzFP0w9IZmp3toYzqaEMA4iQCxmIhTQ9gAgVDwZiIU13IEocDMRGms5AAB4MxEKajkDUh6tuzZpqApM4AwLiYCA20nQCgvBgIBbSdKi5CB+uujXrIQ0liTGQ3LmY/1g7FwXsuOOwE4BRrlwQ1/GCLs7SUJIYzxAGYldiDCR3LqY/qhsp9j4Uiet7WebNekhDSWIZSBGPH6FhR+KvJYq7pAGkjMe+JP5aortLOkA4PAYDIRYMhFgwEGLBQIgFCqR6sxGSxLgEzqLdEhxFli8WGoqNs+ho4oYEA7K+2QhL8jepYUm+TAyiublCW0rmz7Esd2+hoSx36RLdpc9TTHIDDsxyt6GW8nGrji8GpHZvC5As3xOFJDG0g6XmIzTaueTryWtMMt/dRyTx4TYmSccJ3aU7MIvO4OXjVpV4BLJcJgZMk2AtPTx99gTgWmaBxjIHMsV3KZ6h3UUGO998fwzud1cgtZuNgAQGUlsmBtLMX0CzqGjpAZohZZYZlmW+jzYEtrNsSGOXwMFLx60+vnyWRSwYCLFgIMSCgRALBkIsGAixCA9IfHs7dBdcRnhAbq4+Z2ftf6X/Xf66+Cu7ksx/XxT/L/8ZF9eXcfHn+W/lz9+Pf70EL04JRIhA/rv/7uXF1eXRP6eTo7ezy+t5/vsiSf+d/jlLfx6eTrOBf3f6/vDl0dX79M+Lq2n6c7I3Ob6+/BO8Ah86QgTyJf20H+5NniwuD79fJDfl74v4cG96eXya/ty6Pj++zibN/NvfZsn8+8V8d29rL/0rA3L35qehdwGKAIGkQ31+PT/ZuXizMzk6mc3Pit/TGXKy88dWtmVyfX50ls6Q/dkk/XN6uD+dvNl6tp/NkKOz+B+kj1rhAdGPc+nI35M+Ym00kCCDgRALBkIsGAix+D+jFLvI7rjT8gAAAABJRU5ErkJggg==" alt="Calibration plot for X3" width="50%" />
 <p class="caption">
 Calibration plot for X3
 </p>
 </div>
-Below I included the ROC plot and the area under the curve for X3.<br />
-
+Below I included the ROC plot and the area under the curve for X3, showing the AUC colored. From these graphs we can see the effects of choosing a higher/lower threshold on FN and FP values.
 <div class="figure" style="text-align: center">
 <img src="data:image/png;base64,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" alt="ROC plot for X3" width="50%" />
 <p class="caption">
@@ -582,17 +588,178 @@ ROC plot for X3
 <h2>Classification</h2>
 <div id="setting-treshold" class="section level4">
 <h4>Setting treshold</h4>
-<p>In order to classify the predictions into categories of fast growth / not fast growth, I had to select a threshold. I used the loss function explained under the chapter “Business Case”, with cost=7. Based on the formula the optimal classification threshold would be 1/(1+7) = 0.125, but also used an algorith to calculate optimal thresholds. The results can be found below:</p>
+<p>In order to classify the predictions into categories of fast growth / not fast growth, I selected a threshold. I used the loss function explained under the chapter “Business Case”, with cost=7. Based on the formula the optimal classification threshold would be 1/(1+7) = 0.125, but also used an algorithm to calculate optimal thresholds (0.128 for Random Forest). The results can be found below:</p>
+<table class=" lightable-classic" style="font-family: Cambria; width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+X
+</th>
+<th style="text-align:right;">
+Number.of.predictors
+</th>
+<th style="text-align:right;">
+CV.RMSE
+</th>
+<th style="text-align:right;">
+CV.AUC
+</th>
+<th style="text-align:right;">
+CV.threshold
+</th>
+<th style="text-align:right;">
+CV.expected.Loss
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Logit X1
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+0.2988625
+</td>
+<td style="text-align:right;">
+0.7311906
+</td>
+<td style="text-align:right;">
+0.1011677
+</td>
+<td style="text-align:right;">
+0.2117984
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Logit X3
+</td>
+<td style="text-align:right;">
+30
+</td>
+<td style="text-align:right;">
+0.2907820
+</td>
+<td style="text-align:right;">
+0.7796409
+</td>
+<td style="text-align:right;">
+0.1075261
+</td>
+<td style="text-align:right;">
+0.1797321
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Logit LASSO
+</td>
+<td style="text-align:right;">
+70
+</td>
+<td style="text-align:right;">
+0.2897130
+</td>
+<td style="text-align:right;">
+0.7583547
+</td>
+<td style="text-align:right;">
+0.1060399
+</td>
+<td style="text-align:right;">
+0.2149361
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+RF probability
+</td>
+<td style="text-align:right;">
+35
+</td>
+<td style="text-align:right;">
+0.2901506
+</td>
+<td style="text-align:right;">
+0.7771989
+</td>
+<td style="text-align:right;">
+0.1280486
+</td>
+<td style="text-align:right;">
+0.1706769
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div id="model-choice-and-evaluation" class="section level4">
 <h4>Model choice and evaluation</h4>
-<p>Based table expected loss in the table above, the random forest is the best model to use due to lowest expected losses, followed by …. Interestingly, ordering the models based on AUC would yield a different list.</p>
-<p>On the holdout set for my chosen model, the Random Forest, the expected loss is 0.39. This is even smaller than what we got for the train data. Below is the confusion table for the model, showing the choices made by the model, in comparison to the actual values. Based on this the model performance is the following:</p>
-<p>Accuracy is 82.6% Sensitivity is 30.5% Specificity is 92.4% Correctly predicted positive 43.1% (115/(115+152))</p>
+<p>Based table expected loss in the table above, the random forest is the best model to use due to lowest expected losses, followed by X3 Logit model, and then LASSO. Interestingly, ordering the models based on AUC would yield a different list, with X3 Logit being the best, followed by LASSO.</p>
+<p>This is even smaller than what I got for the train data. Below is the confusion table for the model, showing the choices made by the model, in comparison to the actual values. Based on this the model performance is the following:</p>
+<pre class="r"><code>library(kableExtra)
+exp_cm_rf.csv&lt;- read.csv(&quot;https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/exp_cm_rf.csv&quot;)
+exp_cm_rf.csv %&gt;% 
+  kbl() %&gt;% 
+  kable_classic(full_width = F, html_font = &quot;Cambria&quot;)</code></pre>
+<table class=" lightable-classic" style="font-family: Cambria; width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+X
+</th>
+<th style="text-align:right;">
+fast_growth
+</th>
+<th style="text-align:right;">
+no_fast_growth
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+fast_growth
+</td>
+<td style="text-align:right;">
+228
+</td>
+<td style="text-align:right;">
+727
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+no_fast_growth
+</td>
+<td style="text-align:right;">
+86
+</td>
+<td style="text-align:right;">
+1786
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>Accuracy=(228+1786)/(228+727+86+1786)
+Sensitivity = 228 / (228 + 86)
+Specificity = 1786 / (1786 + 727)</code></pre>
+<p>Accuracy is 71.2% Sensitivity is 72.6% Specificity is 71.1% Correctly predicted positive 23.9%</p>
+<p>This yeilds the following loss:</p>
+<ul>
+<li>We wrongly invest 0.1 m in 727 firms that are not fast growing, loosing EUR 72.7 m</li>
+<li>We do not invest in 86 firms that are fast growing, loosing 86x0.7 = EUR 60.2 m</li>
+<li>That is a total loss of USD 132.9 m</li>
+</ul>
+<p>To explain these results: - If we would guess all 314 fast growing firms correctly we would profit 0.7x314 = USD 219.8 m - Based on the CM, we would gain 228x0.7 and loose 727x0.1 , resulting in a profit 159.6-72.2= USD 87 m - The total loss compared to the best solution is 219.8 - 87 = 132.9 m , same as above.</p>
 </div>
 <div id="summary" class="section level4">
 <h4>Summary</h4>
-<p>The task was to select fast growing firms, defined as firms growing at least 50% annually. I buil Logit, LASSO, and Random Forest models. I defined the loss function with False Negatives being 7 times worse as False Positives, based on the business case of Private Equity client. The final model I chose was teh Random Forest. The accuracy of the model was 83% meaning that is classified 83% of the firms to the good category. From the actual not fast growing firms the model predicted 92% correctly, while from the actual fast growing ones it predicted 30% right. As the number of firms that are actually fast growing is much lower only 16% of our data, so it is more difficult to predict them then to predict non fast growing companies. From the firms the model predicted to be fast growing 43% actually turned out to be fast growing. The expected loss is xxx, meaning the expected loss per purchase is xxx. This is lower to the xxx of the worst model, meaning that building a better model yielded in xxx savings.</p>
+<p>The task was to select fast growing firms, defined as firms growing at least 50% annually. For this, I built Logit, LASSO, and Random Forest models sing the Bisnode dataset on firms. I defined the loss function with False Negatives being 7 times worse as False Positives, based on the business case of Private Equity client. The final model I chose was the Random Forest. The accuracy of the model was 71% meaning that is classified 71% of the firms into the correct categoryand identified not fast growing firms 71.1% correctly, while from the actual fast growing ones it predicted 72.6% right.</p>
+<p>From the firms the model predicted to be fast growing 24% actually turned out to be fast growing. This is more than twice as high as the occurance of fast growing firms in a random sample (11%)</p>
 </div>
 </div>
 </div>

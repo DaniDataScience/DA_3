@@ -508,7 +508,7 @@ roc_obj_holdout <- roc(data_holdout$fast_growth, data_holdout[, "best_logit_with
 # Get expected loss on holdout
 holdout_treshold <- coords(roc_obj_holdout, x = best_logit_optimal_treshold, input= "threshold",
                            ret="all", transpose = FALSE)
-expected_loss_holdout <- (holdout_treshold$fp*FP + holdout_treshold$fn*FN)/length(data_holdout$fast_growth)
+expected_loss_holdout <- (holdout_treshold$fp*FP + holdout_treshold$fn*FN)/(length(data_holdout$fast_growth)*0.1)
 expected_loss_holdout
 
 # Confusion table on holdout with optimal threshold
@@ -588,6 +588,8 @@ cm_object_rf<- confusionMatrix(holdout_prediction,data_holdout$fast_growth_f)
 cm_rf <- cm_object_rf$table
 cm_rf
 
+
+write.csv(cm_rf, file="exp_cm_rf.csv",row.names=TRUE)
 
 # Model selection is carried out on this CV RMSE
 
