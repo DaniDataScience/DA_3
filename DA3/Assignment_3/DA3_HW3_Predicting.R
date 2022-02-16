@@ -554,6 +554,8 @@ rf_summary <- data.frame("CV RMSE" = CV_RMSE[["rf_p"]],
                          "Expected loss for Fold5" = expected_loss_cv[[fold]])
 
 rf_summary
+write.csv(rf_summary, file="exp_rf.csv",row.names=TRUE)
+
 
 # Create plots - this is for Fold5
 

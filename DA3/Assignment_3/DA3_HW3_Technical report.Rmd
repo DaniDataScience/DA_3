@@ -143,7 +143,7 @@ logit_summary1 %>%
 Random forest was based on using unchanged variables mostly. This is due to the random Forest "figuring out" functional forms by splits and conditional means, so adding higher orders and modified functional forms was not necessary.
 
 The RF was run with growing 500 trees, with 10 and 15 as the minimum number of observations  and 5, 6 or 7 variables in each split. The Random Forest performed slightly worse than the X3 model in terms os AUS but gave a slightly better RMSE.
-```{r, echO=FALSE, message=F, warning=F}
+```{r, echo=FALSE, message=F, warning=F}
 library(kableExtra)
 exp_rf_summary<- read.csv("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/exp_rf_summary.csv")
 exp_rf_summary %>% 
@@ -177,25 +177,20 @@ Based table expected loss in the table above, the Random Forest is the best mode
 
 I created calibration  plot for the Random Forest. The calibration curve show the model performance. We can see that for values below 0.4, the model did a pretty good job, however, above 0.4 the model was too conservative, it predicted lower values (e.g. 0.5 instead of 0.7).
 
-```{r, echo=FALSE,message=F, warning=F, out.width="50%", fig.cap="Calibration plot for X3", fig.align = 'center'}
+```{r, echo=FALSE,message=F, warning=F, out.width="50%", fig.cap="Calibration plot for Random Forest", fig.align = 'center'}
 library(kableExtra)
 knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/plot_calibration.png")
 
 ```
 
 
-This is even smaller than what I got for the train data. Below is the confusion table for the model, showing the choices made by the model, in comparison to the actual values. Based on this the model performance is the following:
+This is even smaller than what I got for the train data. Below is the confusion table for the model, showing the choices made by the model, in comparison to the actual values. 
 
-```{r, echo=FALSE, message=F, warning=F}
-library(kableExtra)
-exp_rf.csv<- read.csv("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/exp_rf.csv")
-exp_rf.csv %>% 
-  kbl() %>% 
-  kable_classic(full_width = F, html_font = "Cambria")
+Performance on the holdout set:
+The expected loss is 0.44, the AUC is 0.81, the RMSE is 0.28
 
-```
-
-```{r, echo=FALSE, message=F, warning=F}
+The model gives the following classification result:
+```{r, echo=FALSE, message=F, warning=F, fig.cap="COnfusion matrix for Random Forest"}
 library(kableExtra)
 exp_cm_rf.csv<- read.csv("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/exp_cm_rf.csv")
 exp_cm_rf.csv %>% 
@@ -218,8 +213,9 @@ This yeilds the following loss:
 - That is a total loss of USD 132.9 m
 
 To explain these results:
+
 - If we would guess all 314 fast growing firms correctly we would profit 0.7x314 = USD 219.8 m 
-- Based on the CM, we would gain 228x0.7 and loose 727x0.1 , resulting in a profit 159.6-72.2= USD 87 m
+- Based on the CM, we would gain 228x0.7 and loose 727x0.1 , resulting in a profit 159.6-72.2 = USD 87 m
 - The total loss compared to the best solution is 219.8 - 87 = 132.9 m , same as above.
 
 #### Summary
