@@ -17,11 +17,11 @@ The goal of this project was to identify firms with such potential using the too
 
 The task was to select fast growing firms, defined as firms growing at least 50% annually.
 
-For this, I buil Logit, LASSO, and Random Forest models. The data was used for this analysis was collected, maintained, and cleaned by Bisnode. I defined fast growing as having at least a 50% annual growth in the 2012-2014 period.
+The data was used for this analysis was collected, maintained, and cleaned by Bisnode. I defined fast growing as having at least a 50% annual growth in the 2012-2014 period. For this, I buil Logit, LASSO, and Random Forest models for predicting porbability of a firm being "fast growth". 
 
-I defined the loss function with False Negatives being 7 times worse as False Positives, based on the opportunity of realizing 50% annual growth on the initial investment of EUR 100,000 for 5 years of holding period leading to 700,000 in profits.
+I defined the loss function with False Negatives being 7 times worse as False Positives, based on the opportunity of realizing 50% annual growth on the initial investment of EUR 100,000 for 5 years of holding period leading to 700,000 in profits. I set the threshold with the help of the loss function to find the optimal threshold for classification.
 
-I built 3 models, Logit, LASSO and Random Forest. Looking at results CV results from prediction, the X3 model gave the best prediction results, followed by the random forest. 
+I built 3 models, Logit, LASSO and Random Forest. Looking at results CV results from prediction, the Random Forest model gave the best prediction results. 
 
 ```{r, echo=F, message=F, warning=F, fig.cap="Summary of logit results"}
 

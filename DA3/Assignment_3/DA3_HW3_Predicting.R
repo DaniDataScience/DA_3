@@ -31,7 +31,7 @@ source("theme_bg.R")
 source("da_helper_functions.R")
 
 data <- read_csv("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/data/bisnode_firms_clean.csv")
-
+data <- data.table(data)
 output <- paste0("output/")
 
 to_filter <- sapply(data, function(x) sum(is.na(x)))
@@ -321,6 +321,7 @@ rf_summary <- data.frame("CV RMSE" = unlist(CV_RMSE),
 rf_summary
 write.csv(rf_summary, file="exp_rf_summary.csv",row.names=TRUE)
 
+
 #################################
 #         Model selection       
 
@@ -371,7 +372,7 @@ ggplot(
         legend.key.size = unit(.4, "cm")) 
 
 
-# continuous ROC on holdout with best model (Logit 4) -------------------------------------------
+# continuous ROC on holdout with best model -------------------------------------------
 roc_obj_holdout <- roc(data_holdout$fast_growth, data_holdout$best_no_loss_pred)
 
 plot_ROC <- createRocPlot(roc_obj_holdout, "best_no_loss_roc_plot_holdout")
@@ -417,16 +418,14 @@ cm2
 ##########
 # loss function
 
-data <- data.table(data)
-
 # average cagr for fast growing firms
 investment <- 0.1 # million USD
 avg_cagr <- 0.5
 timeframe <- 5
 return_on_inv <- round(investment*(1+avg_cagr)^timeframe,1)
 
-FN <- return_on_inv - investment
-FP <- investment 
+FN <- 7
+FP <- 1
 
 cost = FN/FP
 # the prevalence, or the proportion of cases in the population (n.cases/(n.controls+n.cases))
@@ -496,8 +495,8 @@ for (model_name in names(logit_cv_rocs)) {
 
 # Pick best model based on average expected loss 
 
-best_logit_with_loss <- logit_models[["X3"]]
-best_logit_optimal_treshold <- best_tresholds[["X2"]]
+best_logit_with_loss <- logit_models[["X4"]]
+best_logit_optimal_treshold <- best_tresholds[["X4"]]
 
 logit_predicted_probabilities_holdout <- predict(best_logit_with_loss, newdata = data_holdout, type = "prob")
 data_holdout[,"best_logit_with_loss_pred"] <- logit_predicted_probabilities_holdout[,"fast_growth"]
@@ -508,7 +507,7 @@ roc_obj_holdout <- roc(data_holdout$fast_growth, data_holdout[, "best_logit_with
 # Get expected loss on holdout
 holdout_treshold <- coords(roc_obj_holdout, x = best_logit_optimal_treshold, input= "threshold",
                            ret="all", transpose = FALSE)
-expected_loss_holdout <- (holdout_treshold$fp*FP + holdout_treshold$fn*FN)/(length(data_holdout$fast_growth)*0.1)
+expected_loss_holdout <- (holdout_treshold$fp*FP + holdout_treshold$fn*FN)/(length(data_holdout$fast_growth))
 expected_loss_holdout
 
 # Confusion table on holdout with optimal threshold
@@ -554,7 +553,7 @@ rf_summary <- data.frame("CV RMSE" = CV_RMSE[["rf_p"]],
                          "Avg expected loss" = expected_loss[["rf_p"]],
                          "Expected loss for Fold5" = expected_loss_cv[[fold]])
 
-
+rf_summary
 
 # Create plots - this is for Fold5
 
@@ -615,8 +614,8 @@ write.csv(summary_results, file="exp_summary_results.csv", row.names=TRUE)
 # how well do estimated vs actual event probabilities relate to each other?
 
 plot_calibration <- create_calibration_plot(data_holdout, 
-                        file_name = "logit-X3-calibration", 
-                        prob_var = "best_logit_with_loss_pred", 
+                        file_name = "rf-calibration", 
+                        prob_var = "rf_p_prediction", 
                         actual_var = "fast_growth",
                         n_bins = 10)
 

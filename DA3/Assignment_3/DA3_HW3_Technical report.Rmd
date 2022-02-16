@@ -153,15 +153,7 @@ exp_rf_summary %>%
 ```
 
 #### Model results
-Before finding the best thresholds for prediction, I created calibration and the ROC plot for the best model so far, the X3 Logit model. The calibration curve show the model performance. We can see that for values below 0.4, the model did a pretty good job, however, above 0.4 the model was too conservative, it predicted lower values (e.g. 0.5 instead of 0.7).
-
-```{r, echo=FALSE,message=F, warning=F, out.width="50%", fig.cap="Calibration plot for X3", fig.align = 'center'}
-library(kableExtra)
-knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/plot_calibration.png")
-
-```
-
-Below I included the ROC plot and the area under the curve for X3, showing the AUC colored. From these graphs we can see the effects of choosing a higher/lower threshold on FN and FP values.
+Before finding the best thresholds for prediction, I included the ROC plot and the area under the curve for X3, showing the AUC colored. From these graphs we can see the effects of choosing a higher/lower threshold on FN and FP values.
 ```{r, echo=FALSE, out.width="50%", fig.cap="ROC plot for X3", fig.align = 'center'}
 library(kableExtra)
 knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/plot_ROC.png")
@@ -181,11 +173,29 @@ summary_results %>%
   kable_classic(full_width = F, html_font = "Cambria")
 ```
 #### Model choice and evaluation
-Based table expected loss in the table above, the random forest is the best model to use due to lowest expected losses, followed by X3 Logit model, and then LASSO. Interestingly, ordering the models based on AUC would yield a different list, with X3 Logit being the best, followed by LASSO.
+Based table expected loss in the table above, the Random Forest is the best model to use due to lowest expected losses, followed by X3 Logit model, and then LASSO. Interestingly, ordering the models based on AUC would yield a different list, with X3 Logit being the best, followed by LASSO. 
+
+I created calibration  plot for the Random Forest. The calibration curve show the model performance. We can see that for values below 0.4, the model did a pretty good job, however, above 0.4 the model was too conservative, it predicted lower values (e.g. 0.5 instead of 0.7).
+
+```{r, echo=FALSE,message=F, warning=F, out.width="50%", fig.cap="Calibration plot for X3", fig.align = 'center'}
+library(kableExtra)
+knitr::include_graphics("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/plot_calibration.png")
+
+```
+
 
 This is even smaller than what I got for the train data. Below is the confusion table for the model, showing the choices made by the model, in comparison to the actual values. Based on this the model performance is the following:
 
-```{r, message=F, warning=F}
+```{r, echo=FALSE, message=F, warning=F}
+library(kableExtra)
+exp_rf.csv<- read.csv("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/exp_rf.csv")
+exp_rf.csv %>% 
+  kbl() %>% 
+  kable_classic(full_width = F, html_font = "Cambria")
+
+```
+
+```{r, echo=FALSE, message=F, warning=F}
 library(kableExtra)
 exp_cm_rf.csv<- read.csv("https://raw.githubusercontent.com/DaniDataScience/DA_3/main/DA3/Assignment_3/exp_cm_rf.csv")
 exp_cm_rf.csv %>% 
